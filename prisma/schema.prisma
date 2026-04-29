@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Tenant {
+  id                    String                 @id @default(cuid())
+  name                  String
+  email                 String                 @unique
+  passwordHash          String
+  trialStartDate        DateTime               @default(now())
+  trialEndDate          DateTime
+  isSubscribed          Boolean                @default(false)
+  isOnboarded           Boolean                @default(false)
+  createdAt             DateTime               @default(now())
+  users                 User[]
+  devices               Device[]
+  sessions              Session[]
+  inventoryItems        InventoryItem[]
+  orders                Order[]
+  sales                 Sale[]
+  saleItems             SaleItem[]
+  deviceTypes           DeviceType[]
+  financialTransactions FinancialTransaction[]
+  sessionSegments       SessionSegment[]
+  shifts                Shift[]
+  appSettings           AppSetting[]
+  tenantSettings        TenantSettings?        // Added: opposite relation for TenantSettings
+  auditLogs             AuditLog[]             // Added: opposite relation for AuditLog
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  username              String                 @unique
+  password              String
+  role                  String
+  permissions           String?
+  tenantId              String?
+  tenant                Tenant?                @relation(fields: [tenantId], references: [id])
+  financialTransactions FinancialTransaction[]
+  sales                 Sale[]
+  endedSessions         Session[]              @relation("EndedBy")
+  sessions              Session[]              @relation("StartedBy")
+  openedShifts          Shift[]                @relation("ShiftOpened")
+  closedShifts          Shift[]                @relation("ShiftClosed")
+  auditLogs             AuditLog[]             // Added: opposite relation for AuditLog
+}
+
+model Device {
+  id               String    @id @default(cuid())
+  number           String
+  type             String
+  hourlyRateSingle Decimal @default(0)
+  hourlyRateMulti  Decimal @default(0)
+  isDeleted        Boolean @default(false)
+  tenantId         String?
+  tenant           Tenant?   @relation(fields: [tenantId], references: [id])
+  sessions         Session[]
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  // Prevent multiple active sessions on same device via partial unique index
+  // This is handled at application level with transactions since SQLite/Prisma doesn't support partial indexes directly
+}
+
+model Session {
+  id                    String    @id @default(cuid())
+  deviceId              String
+  userId                String
+  endedByUserId         String?
+  startTime             DateTime  @default(now())
+  endTime               DateTime?
+  type                  String
+  durationMinutes       Int?
+  isMulti               Boolean   @default(false)
+  isActive              Boolean   @default(true)
+  accumulatedTimeCost   Decimal @default(0)
+  accumulatedSingleCost Decimal @default(0)
+  accumulatedMultiCost  Decimal @default(0)
+  lastRateChangeTime    DateTime  @default(now())
+  shiftId               String?
+  tenantId              String?
+  tenant                Tenant?   @relation(fields: [tenantId], references: [id])
+  segments              SessionSegment[]
+  orders                Order[]
+  endedByUser           User?     @relation("EndedBy", fields: [endedByUserId], references: [id])
+  user                  User      @relation("StartedBy", fields: [userId], references: [id])
+  device                Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  shift                 Shift?    @relation(fields: [shiftId], references: [id])
+}
+
+model InventoryItem {
+  id       String     @id @default(cuid())
+  name     String
+  category String
+  price    Decimal @default(0)
+  stock    Int
+  isActive Boolean    @default(true)
+  tenantId String?
+  tenant   Tenant?    @relation(fields: [tenantId], references: [id])
+  orders   Order[]
+  sales    SaleItem[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  sessionId       String
+  inventoryItemId String
+  quantity        Int
+  priceAtTime     Decimal
+  createdAt       DateTime      @default(now())
+  shiftId         String?
+  tenantId        String?
+  // Soft delete support for financial integrity
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+  deletedByUserId String?
+  tenant          Tenant?       @relation(fields: [tenantId], references: [id])
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  session         Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  shift           Shift?        @relation(fields: [shiftId], references: [id])
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  totalAmount     Decimal @default(0)
+  userId          String?
+  shiftId         String?
+  tenantId        String?
+  isDeleted       Boolean   @default(false)
+  deletedAt       DateTime?
+  deletedByUserId String?
+  tenant          Tenant?   @relation(fields: [tenantId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id])
+  items           SaleItem[]
+  shift           Shift?    @relation(fields: [shiftId], references: [id])
+}
+
+model SaleItem {
+  id              String        @id @default(cuid())
+  saleId          String
+  inventoryItemId String
+  quantity        Int
+  priceAtTime     Decimal
+  tenantId        String?
+  tenant          Tenant?       @relation(fields: [tenantId], references: [id])
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  sale            Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+}
+
+model DeviceType {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("blue")
+  icon      String   @default("Gamepad2")
+  createdAt DateTime @default(now())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  @@unique([tenantId, name])
+}
+
+model FinancialTransaction {
+  id          String   @id @default(cuid())
+  type        String
+  amount      Decimal
+  description String
+  userId      String
+  shiftId     String
+  createdAt   DateTime @default(now())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  shift       Shift    @relation(fields: [shiftId], references: [id])
+}
+
+model SessionSegment {
+  id           String   @id @default(cuid())
+  sessionId    String
+  deviceName   String
+  deviceType   String
+  mode         String // "SINGLE" or "MULTI"
+  startTime    DateTime
+  endTime      DateTime
+  durationMins Float
+  cost         Decimal @default(0)
+  tenantId     String?
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id])
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Shift {
+  id                    String                 @id @default(cuid())
+  openedAt              DateTime               @default(now())
+  closedAt              DateTime?
+  openedByUserId        String
+  closedByUserId        String?
+  openingFloat          Decimal  @default(0)
+  expectedCash          Decimal  @default(0)
+  actualCash            Decimal?
+  variance              Decimal?
+  notes                 String?
+  status                String                 @default("OPEN") // OPEN / CLOSED
+  tenantId              String?
+  tenant                Tenant?                @relation(fields: [tenantId], references: [id])
+  openedByUser          User                   @relation("ShiftOpened", fields: [openedByUserId], references: [id])
+  closedByUser          User?                  @relation("ShiftClosed", fields: [closedByUserId], references: [id])
+  sessions              Session[]
+  orders                Order[]
+  sales                 Sale[]
+  financialTransactions FinancialTransaction[]
+
+  // Database-level constraint: only one open shift per tenant
+  @@unique([tenantId, status], name: "only_one_open_shift_per_tenant")
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String
+  action        String   // e.g., "DELETE_ORDER", "ADJUST_INVENTORY", "CHANGE_PRICE"
+  entityType    String   // e.g., "Order", "InventoryItem", "FinancialTransaction"
+  entityId      String   // ID of the affected entity
+  reason        String   // Mandatory justification for the action
+  metadata      Json     // Optional additional data (JSON)
+  tenantId      String?
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id])
+  tenant        Tenant?  @relation(fields: [tenantId], references: [id])
+  
+  @@index([userId])
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model TenantSettings {
+  id            String   @id @default(cuid())
+  currency      String   @default("EGP") // Egyptian Pound
+  currencySymbol String   @default("ج.م")
+  timezone      String   @default("Africa/Cairo")
+  updatedAt     DateTime @updatedAt
+  
+  tenantId      String   @unique
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+}
