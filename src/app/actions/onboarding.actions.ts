@@ -42,6 +42,16 @@ export async function signup(data: any) {
         },
       });
 
+      // 3. Create Default Tenant Settings
+      await tx.tenantSettings.create({
+        data: {
+          tenantId: tenant.id,
+          currency: "EGP",
+          currencySymbol: "ج.م",
+          timezone: "Africa/Cairo"
+        }
+      });
+
       // Seed default device types for the new tenant
       await tx.deviceType.createMany({
         data: [
