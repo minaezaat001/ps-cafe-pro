@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Users, CreditCard, Clock, CheckCircle2, XCircle, Search, RefreshCw, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { getAllTenants, toggleTenantSubscription, updateTenantTrial } from '../../actions/super-admin.actions';
+import { getAllTenants, toggleTenantSubscription, updateTenantTrial, deleteTenant } from '../../actions/super-admin.actions';
+import { Trash2 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -41,6 +42,18 @@ export default function SuperAdminDashboard() {
     try {
       await updateTenantTrial(id, 7); // Extend by 7 days
       toast.success('Trial extended by 7 days');
+      fetchTenants();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteTenant = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the account for "${name}"? This action is permanent and will delete ALL data for this cafe.`)) return;
+    
+    try {
+      await deleteTenant(id);
+      toast.success('Tenant deleted successfully');
       fetchTenants();
     } catch (err: any) {
       toast.error(err.message);
@@ -188,11 +201,18 @@ export default function SuperAdminDashboard() {
                         onClick={() => handleToggleSubscription(tenant.id, tenant.isSubscribed)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                           tenant.isSubscribed 
-                          ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' 
-                          : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' 
+                          : 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
                         }`}
                       >
-                        {tenant.isSubscribed ? 'Disable' : 'Mark Paid'}
+                        {tenant.isSubscribed ? 'Deactivate' : 'Mark Paid'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
+                        className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
+                        title="Delete Account"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </motion.tr>

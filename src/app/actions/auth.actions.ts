@@ -128,3 +128,8 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null;
   }
 }
+import { getTrialBannerState } from "@/lib/tenant-guard";
+
+export async function getTrialStatus() {
+  return await getTrialBannerState();
+}

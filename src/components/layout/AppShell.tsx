@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { useTheme } from "@/lib/ThemeContext";
 import { Menu, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TrialStatus } from "@/components/TrialStatus";
 
 const MobileHeader = ({ onOpen, hidden = false }: { onOpen: () => void; hidden?: boolean }) => {
   if (hidden) return null;
@@ -62,6 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           )}
 
           <div className={cn("relative z-10", isFullWidth ? "" : "p-4 md:p-8")}>
+            {!isFullWidth && <TrialStatus />}
             {children}
           </div>
         </main>

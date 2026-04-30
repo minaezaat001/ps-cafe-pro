@@ -61,3 +61,17 @@ export async function updateTenantTrial(tenantId: string, days: number) {
 
   revalidatePath('/super-admin/dashboard');
 }
+export async function deleteTenant(tenantId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'SUPER_ADMIN') {
+    throw new Error("Unauthorized access");
+  }
+
+  // Use a transaction to ensure all related data is cleaned up properly if needed
+  // Prisma Cascade delete should handle most of it if configured in schema
+  await prisma.tenant.delete({
+    where: { id: tenantId }
+  });
+
+  revalidatePath('/super-admin/dashboard');
+}
