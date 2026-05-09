@@ -121,29 +121,36 @@ export default function MenuClient({ deviceId, initial }: Props) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.02 }}
-              className="glass-card rounded-2xl border border-border p-4 flex items-center gap-3"
+              onClick={() => setQty(item.id, q + 1, item.stock)}
+              className="glass-card rounded-2xl border border-border p-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-colors active:scale-[0.98]"
             >
-              <div className="flex-1 min-w-0 text-right">
+              <div className="flex-1 min-w-0 text-right pointer-events-none">
                 <p className="font-bold text-foreground truncate">{item.name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {item.price.toFixed(2)} ج · متبقي {item.stock}
+                  {item.price.toFixed(2)} ج
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   disabled={q <= 0}
-                  onClick={() => setQty(item.id, q - 1, item.stock)}
-                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center disabled:opacity-30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQty(item.id, q - 1, item.stock);
+                  }}
+                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center disabled:opacity-30 hover:bg-white/10 active:bg-white/20 transition-colors"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="w-8 text-center font-mono font-bold">{q}</span>
+                <span className="w-8 text-center font-mono font-bold pointer-events-none">{q}</span>
                 <button
                   type="button"
                   disabled={q >= item.stock}
-                  onClick={() => setQty(item.id, q + 1, item.stock)}
-                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center disabled:opacity-30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQty(item.id, q + 1, item.stock);
+                  }}
+                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center disabled:opacity-30 hover:bg-white/10 active:bg-white/20 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                 </button>

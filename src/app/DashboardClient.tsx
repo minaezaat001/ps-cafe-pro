@@ -42,13 +42,22 @@ export default function DashboardClient({
   const [isCompact, setIsCompact] = useState(false);
   const [devices, setDevices] = useState<DashboardDeviceSnapshot[]>(initialDevices);
   const revRef = useRef<string>(initialRevision);
+  const prevOrdersRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("pscafe_isCompact");
     if (saved) setIsCompact(saved === "true");
   }, []);
 
+  // Initialize previous orders count
   useEffect(() => {
+    const counts: Record<string, number> = {};
+    initialDevices.forEach(d => {
+      if (d.sessions && d.sessions[0]) {
+        counts[d.id] = d.sessions[0].orders.length;
+      }
+    });
+    prevOrdersRef.current = counts;
     setDevices(initialDevices);
     revRef.current = initialRevision;
   }, [initialDevices, initialRevision]);
@@ -68,6 +77,34 @@ export default function DashboardClient({
       const r = await getDevicesSnapshotForDashboard();
       if (cancelled || !r.success) return;
       if (r.revision === revRef.current) return;
+      
+      // Detect new orders for notifications
+      r.devices.forEach((d) => {
+        const session = d.sessions[0];
+        if (session) {
+          const prevCount = prevOrdersRef.current[d.id] || 0;
+          if (session.orders.length > prevCount) {
+             const newOrdersCount = session.orders.length - prevCount;
+             import("sonner").then(({ toast }) => {
+               toast.success(isRTL ? `طلب جديد من جهاز ${d.number}` : `New Order from Device ${d.number}`, {
+                 description: isRTL ? `تم إضافة ${newOrdersCount} طلب(ات) عبر المنيو الذكي` : `${newOrdersCount} item(s) added via QR menu`,
+                 duration: 10000,
+                 position: isRTL ? "top-left" : "top-right",
+               });
+               
+               // Try to play a default system beep or notification sound
+               try {
+                 const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // short dummy base64 to avoid error if no file, ideally put a file in public
+                 // For now, we just rely on visual toast. User can add notification.mp3 later.
+               } catch(e) {}
+             });
+          }
+          prevOrdersRef.current[d.id] = session.orders.length;
+        } else {
+          prevOrdersRef.current[d.id] = 0;
+        }
+      });
+
       revRef.current = r.revision;
       setDevices(r.devices);
     }, 12000);
@@ -75,7 +112,7 @@ export default function DashboardClient({
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [isRTL]);
 
   const toggleCompact = () => {
     const newVal = !isCompact;
