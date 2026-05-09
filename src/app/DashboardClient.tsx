@@ -211,9 +211,15 @@ export default function DashboardClient({
         if (pendingOrders.length === 0) return null;
 
         return (
-          <div className="fixed bottom-6 right-6 z-[9999] w-80 bg-background/95 backdrop-blur-xl border-2 border-amber-500/50 shadow-2xl rounded-2xl p-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <h3 className="font-black text-amber-500 flex items-center gap-2">
+          <div 
+            className={cn(
+              "fixed bottom-6 z-[9999] w-80 bg-background/95 backdrop-blur-xl border-2 border-amber-500/50 shadow-2xl rounded-2xl p-4 flex flex-col gap-3",
+              isRTL ? "left-6" : "right-6"
+            )}
+            dir={isRTL ? "rtl" : "ltr"}
+          >
+            <div className={cn("flex items-center justify-between border-b border-border pb-2", isRTL && "flex-row-reverse")}>
+              <h3 className={cn("font-black text-amber-500 flex items-center gap-2", isRTL && "flex-row-reverse")}>
                 <AlertTriangle className="w-5 h-5 animate-pulse" />
                 {isRTL ? "طلبات معلقة" : "Pending Orders"} ({pendingOrders.length})
               </h3>
@@ -221,15 +227,15 @@ export default function DashboardClient({
             <div className="max-h-64 overflow-y-auto space-y-3 pr-1">
               {pendingOrders.map(o => (
                 <div key={o.id} className="bg-card border border-border rounded-xl p-3 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
+                  <div className={cn("flex justify-between items-start mb-2", isRTL && "flex-row-reverse text-right")}>
+                    <div className="w-full">
                       <p className="font-bold text-foreground text-sm">{o.inventoryItem?.name} <span className="text-amber-500 font-black">x{o.quantity}</span></p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {isRTL ? "جهاز رقم" : "Device"} <span className="font-bold text-foreground">#{o.deviceNumber}</span>
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-3">
+                  <div className={cn("flex gap-2 mt-3", isRTL && "flex-row-reverse")}>
                     <button
                       onClick={async () => {
                         const { confirmPendingOrder } = await import("@/app/actions/customer-menu.actions");
