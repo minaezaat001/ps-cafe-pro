@@ -1,18 +1,27 @@
 "use client";
 
-import { DeviceCard } from "@/components/DeviceCard";
-import { LayoutGrid, List } from "lucide-react";
+import dynamic from "next/dynamic";
+import { LayoutGrid, List, AlertTriangle } from "lucide-react";
 import { useLang } from "@/lib/LanguageContext";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getDevicesSnapshotForDashboard } from "@/app/actions";
 import type { DashboardDeviceSnapshot } from "@/lib/dashboard-serialize";
+import Link from "next/link";
 
 function cn(...inputs: (string | boolean | undefined)[]) {
   return inputs.filter(Boolean).join(" ");
 }
 
-import { AlertTriangle } from "lucide-react";
-import Link from "next/link";
+// ── Lazy-load the heavy DeviceCard (76KB) — renders after shell is visible ──
+const DeviceCard = dynamic(
+  () => import("@/components/DeviceCard").then((m) => ({ default: m.DeviceCard })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="rounded-2xl border border-border bg-card/50 animate-pulse h-[200px]" />
+    ),
+  }
+);
 
 export default function DashboardClient({
   initialDevices,

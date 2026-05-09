@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Calendar, TrendingUp, TrendingDown, DollarSign, Clock, Package, Filter, FileText, X, Eye, Download, Printer, RefreshCw, Trash2 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// ── Lazy-load recharts — doesn't block initial page render ──
+const AreaChart = dynamic(() => import('recharts').then(m => ({ default: m.AreaChart })), { ssr: false });
+const Area = dynamic(() => import('recharts').then(m => ({ default: m.Area })), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(m => ({ default: m.XAxis })), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(m => ({ default: m.YAxis })), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(m => ({ default: m.CartesianGrid })), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(m => ({ default: m.Tooltip })), { ssr: false });
+const ResponsiveContainer = dynamic(() => import('recharts').then(m => ({ default: m.ResponsiveContainer })), { ssr: false });
 import { useLang } from '@/lib/LanguageContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { calculateSessionTimeCost, getBillBreakdown } from '@/lib/billing';
@@ -71,7 +79,11 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
   }, [data, selectedShiftId]);
 
 
-  const exportToExcel = () => {
+  // ── xlsx loaded on-demand only when user clicks Export ──
+  const exportToExcel = useCallback(async () => {
+    // Dynamic import: xlsx (~500KB) is NOT in the initial bundle
+    const XLSX = (await import('xlsx')).default;
+
     // Collect Sessions Data
     const sessionsSheet = filteredData.sessions.map(s => {
       const breakdown = getBillBreakdown(s, s.device, new Date(s.endTime || new Date()).getTime());
@@ -109,7 +121,6 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
 
     // Aggregated Inventory Summary
     const inventoryMap = new Map();
-    // From Sessions
     filteredData.sessions.forEach(s => {
       s.orders.forEach((o: any) => {
         const name = o.inventoryItem?.name || 'Item';
@@ -119,7 +130,6 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
         inventoryMap.set(name, current);
       });
     });
-    // From Direct Sales
     filteredData.sales.forEach(s => {
       s.items.forEach((i: any) => {
         const name = i.inventoryItem?.name || 'Item';
@@ -137,7 +147,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
     })).sort((a, b) => b['Total Quantity Sold'] - a['Total Quantity Sold']);
 
     const wb = XLSX.utils.book_new();
-    
+
     if (sessionsSheet.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sessionsSheet), isRTL ? "الجلسات" : "Sessions");
     if (salesSheet.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(salesSheet), isRTL ? "مبيعات الكافيتريا" : "Cafeteria Sales");
     if (inventorySummarySheet.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(inventorySummarySheet), isRTL ? "ملخص المنتجات" : "Inventory Summary");
@@ -148,7 +158,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
     }
 
     XLSX.writeFile(wb, `Reports_${dateRange.start}_to_${dateRange.end}.xlsx`);
-  };
+  }, [filteredData, dateRange, isRTL]);
 
   const stats = useMemo(() => {
     let gamingTimeRevenue = 0, cafeteriaRevenue = 0, totalHours = 0;
