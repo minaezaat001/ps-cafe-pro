@@ -77,16 +77,6 @@ export default function DashboardClient({
       const r = await getDevicesSnapshotForDashboard();
       if (cancelled || !r.success) return;
       if (r.revision === revRef.current) return;
-      
-  // Detect new orders for notifications is removed as it's handled globally by PendingOrdersWidget
-
-  useEffect(() => {
-    let cancelled = false;
-    const id = setInterval(async () => {
-      if (cancelled) return;
-      const r = await getDevicesSnapshotForDashboard();
-      if (cancelled || !r.success) return;
-      if (r.revision === revRef.current) return;
       revRef.current = r.revision;
       setDevices(r.devices);
     }, 12000);
