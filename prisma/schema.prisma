@@ -111,6 +111,7 @@ model Order {
   inventoryItemId String
   quantity        Int
   priceAtTime     Decimal
+  status          String        @default("DELIVERED") // PENDING, DELIVERED, CANCELLED
   createdAt       DateTime      @default(now())
   shiftId         String?
   tenantId        String?

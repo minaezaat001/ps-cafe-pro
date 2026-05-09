@@ -156,10 +156,10 @@ export function getBillBreakdown(session: SessionData, device: DeviceData, nowOv
   }
 
   const gamingTotal = roundToNearestHalf(singleGaming + multiGaming);
-  // Exclude deleted orders from cost calculation (business rule: deleted orders aren't charged)
+  // Exclude deleted orders and pending/cancelled orders from cost calculation (business rule: deleted/pending orders aren't charged)
   const itemsCost =
-    (session as { orders?: { priceAtTime: unknown; quantity: number; isDeleted?: boolean }[] }).orders
-      ?.filter(o => !('isDeleted' in o) || !o.isDeleted)
+    (session as { orders?: { priceAtTime: unknown; quantity: number; isDeleted?: boolean; status?: string }[] }).orders
+      ?.filter(o => (!('isDeleted' in o) || !o.isDeleted) && (!('status' in o) || o.status === 'DELIVERED'))
       ?.reduce((acc, o) => acc + n(o.priceAtTime) * o.quantity, 0) || 0;
 
   return {

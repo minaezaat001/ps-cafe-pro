@@ -44,6 +44,7 @@ export type DashboardSessionSnapshot = {
     id: string;
     quantity: number;
     priceAtTime: number;
+    status: string;
     inventoryItem: { id: string; name: string; category: string; price: number };
   }[];
   segments: {
@@ -91,6 +92,7 @@ export function serializeDashboardDevice(device: {
       id: string;
       quantity: number;
       priceAtTime: unknown;
+      status: string;
       inventoryItem: { id: string; name: string; category: string; price: unknown };
     }>;
     segments: Array<{
@@ -138,6 +140,7 @@ export function serializeDashboardDevice(device: {
         id: o.id,
         quantity: o.quantity,
         priceAtTime: decToNumber(o.priceAtTime),
+        status: o.status,
         inventoryItem: {
           id: o.inventoryItem.id,
           name: o.inventoryItem.name,

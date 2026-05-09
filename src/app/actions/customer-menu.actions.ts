@@ -130,13 +130,11 @@ export async function submitCustomerOrder(
             priceAtTime: inventoryItem.price,
             shiftId,
             tenantId: device.tenantId,
+            status: "PENDING", // Wait for cashier confirmation
           },
         });
 
-        await tx.inventoryItem.update({
-          where: { id: line.itemId },
-          data: { stock: { decrement: line.quantity } },
-        });
+        // Stock deduction is removed here. It will happen when the cashier confirms the order.
       }
     });
 
@@ -147,6 +145,55 @@ export async function submitCustomerOrder(
     return { success: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "تعذر إرسال الطلب.";
+    return { success: false, message: msg };
+  }
+}
+
+export async function confirmPendingOrder(orderId: string): Promise<{ success: true } | { success: false; message: string }> {
+  try {
+    const order = await prisma.order.findUnique({ where: { id: orderId }, include: { inventoryItem: true } });
+    if (!order) return { success: false, message: "الطلب غير موجود" };
+    if (order.status !== "PENDING") return { success: false, message: "حالة الطلب لا تسمح بالتأكيد" };
+    if (order.inventoryItem.stock < order.quantity) {
+      return { success: false, message: `الكمية غير كافية في المخزن. المتاح: ${order.inventoryItem.stock}` };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Mark as DELIVERED
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: "DELIVERED" }
+      });
+      // 2. Deduct stock
+      await tx.inventoryItem.update({
+        where: { id: order.inventoryItemId },
+        data: { stock: { decrement: order.quantity } }
+      });
+    });
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "حدث خطأ";
+    return { success: false, message: msg };
+  }
+}
+
+export async function cancelPendingOrder(orderId: string): Promise<{ success: true } | { success: false; message: string }> {
+  try {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) return { success: false, message: "الطلب غير موجود" };
+    if (order.status !== "PENDING") return { success: false, message: "لا يمكن إلغاء طلب تم تنفيذه بالفعل" };
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: "CANCELLED" }
+    });
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "حدث خطأ";
     return { success: false, message: msg };
   }
 }
