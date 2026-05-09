@@ -8,6 +8,7 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Menu, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrialStatus } from "@/components/TrialStatus";
+import { PendingOrdersWidget } from "@/components/PendingOrdersWidget";
 
 const MobileHeader = ({ onOpen, hidden = false }: { onOpen: () => void; hidden?: boolean }) => {
   if (hidden) return null;
@@ -69,6 +70,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      {!isFullWidth && <PendingOrdersWidget />}
       <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
     </div>
   );

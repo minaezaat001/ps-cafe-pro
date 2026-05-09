@@ -78,34 +78,15 @@ export default function DashboardClient({
       if (cancelled || !r.success) return;
       if (r.revision === revRef.current) return;
       
-      // Detect new orders for notifications
-      r.devices.forEach((d) => {
-        const session = d.sessions[0];
-        if (session) {
-          const pendingOrders = session.orders.filter(o => o.status === "PENDING");
-          const prevCount = prevOrdersRef.current[d.id] || 0;
-          if (pendingOrders.length > prevCount) {
-             const newOrdersCount = pendingOrders.length - prevCount;
-             import("sonner").then(({ toast }) => {
-               toast.warning(isRTL ? `طلب معلق من جهاز ${d.number}` : `Pending Order from Device ${d.number}`, {
-                 description: isRTL ? `يوجد ${newOrdersCount} طلبات تحتاج لتأكيدك` : `${newOrdersCount} item(s) awaiting confirmation`,
-                 duration: 10000,
-                 position: isRTL ? "top-left" : "top-right",
-               });
-               
-               // Try to play a default system beep or notification sound
-               try {
-                 const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); 
-                 // For now, we just rely on visual toast. User can add notification.mp3 later.
-               } catch(e) {}
-             });
-          }
-          prevOrdersRef.current[d.id] = pendingOrders.length;
-        } else {
-          prevOrdersRef.current[d.id] = 0;
-        }
-      });
+  // Detect new orders for notifications is removed as it's handled globally by PendingOrdersWidget
 
+  useEffect(() => {
+    let cancelled = false;
+    const id = setInterval(async () => {
+      if (cancelled) return;
+      const r = await getDevicesSnapshotForDashboard();
+      if (cancelled || !r.success) return;
+      if (r.revision === revRef.current) return;
       revRef.current = r.revision;
       setDevices(r.devices);
     }, 12000);
@@ -197,81 +178,6 @@ export default function DashboardClient({
           ))}
         </div>
       </section>
-
-      {/* --- Pending Orders Floating Panel --- */}
-      {(() => {
-        const pendingOrders = devices.flatMap(d => {
-          const session = d.sessions[0];
-          if (!session) return [];
-          return session.orders
-            .filter(o => o.status === "PENDING")
-            .map(o => ({ ...o, deviceNumber: d.number, deviceId: d.id, sessionId: session.id }));
-        });
-
-        if (pendingOrders.length === 0) return null;
-
-        return (
-          <div 
-            className={cn(
-              "fixed bottom-6 z-[9999] w-80 bg-background/95 backdrop-blur-xl border-2 border-amber-500/50 shadow-2xl rounded-2xl p-4 flex flex-col gap-3",
-              isRTL ? "left-6" : "right-6"
-            )}
-            dir={isRTL ? "rtl" : "ltr"}
-          >
-            <div className={cn("flex items-center justify-between border-b border-border pb-2", isRTL && "flex-row-reverse")}>
-              <h3 className={cn("font-black text-amber-500 flex items-center gap-2", isRTL && "flex-row-reverse")}>
-                <AlertTriangle className="w-5 h-5 animate-pulse" />
-                {isRTL ? "طلبات معلقة" : "Pending Orders"} ({pendingOrders.length})
-              </h3>
-            </div>
-            <div className="max-h-64 overflow-y-auto space-y-3 pr-1">
-              {pendingOrders.map(o => (
-                <div key={o.id} className="bg-card border border-border rounded-xl p-3 shadow-sm">
-                  <div className={cn("flex justify-between items-start mb-2", isRTL && "flex-row-reverse text-right")}>
-                    <div className="w-full">
-                      <p className="font-bold text-foreground text-sm">{o.inventoryItem?.name} <span className="text-amber-500 font-black">x{o.quantity}</span></p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {isRTL ? "جهاز رقم" : "Device"} <span className="font-bold text-foreground">#{o.deviceNumber}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className={cn("flex gap-2 mt-3", isRTL && "flex-row-reverse")}>
-                    <button
-                      onClick={async () => {
-                        const { confirmPendingOrder } = await import("@/app/actions/customer-menu.actions");
-                        const res = await confirmPendingOrder(o.id);
-                        if(res.success) {
-                          import("sonner").then(({ toast }) => toast.success(isRTL ? "تم التأكيد وإضافته للفاتورة" : "Confirmed & Added to bill"));
-                          refreshFromServer();
-                        } else {
-                          import("sonner").then(({ toast }) => toast.error(res.message));
-                        }
-                      }}
-                      className="flex-1 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                    >
-                      {isRTL ? "تأكيد وتقديم" : "Confirm"}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        const { cancelPendingOrder } = await import("@/app/actions/customer-menu.actions");
-                        const res = await cancelPendingOrder(o.id);
-                        if(res.success) {
-                          refreshFromServer();
-                        } else {
-                          import("sonner").then(({ toast }) => toast.error(res.message));
-                        }
-                      }}
-                      className="flex-1 bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border border-red-500/20 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                    >
-                      {isRTL ? "إلغاء/رفض" : "Reject"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }

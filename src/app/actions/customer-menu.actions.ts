@@ -197,3 +197,33 @@ export async function cancelPendingOrder(orderId: string): Promise<{ success: tr
     return { success: false, message: msg };
   }
 }
+
+export async function getPendingOrders() {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { status: "PENDING", isDeleted: false },
+      include: {
+        inventoryItem: true,
+        session: {
+          include: { device: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return { success: true, orders: orders.map(o => ({
+      id: o.id,
+      quantity: o.quantity,
+      priceAtTime: Number(o.priceAtTime),
+      status: o.status,
+      inventoryItem: {
+        id: o.inventoryItem.id,
+        name: o.inventoryItem.name,
+      },
+      deviceNumber: o.session.device.number,
+      deviceId: o.session.device.id,
+      sessionId: o.session.id
+    }))};
+  } catch (e) {
+    return { success: false, orders: [] };
+  }
+}
