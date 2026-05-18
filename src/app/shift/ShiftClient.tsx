@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition, useEffect } from "react";
 import { openShift, closeShift, logout } from "@/app/actions";
+import { getShiftItemsBreakdown } from "@/app/actions/shift.actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -9,7 +10,7 @@ import {
   TrendingUp, TrendingDown, MinusCircle,
   RefreshCw, LogIn, X, ShieldCheck,
   User, Calendar, Printer, Eye, Activity,
-  CheckCircle2, AlertTriangle
+  CheckCircle2, AlertTriangle, GlassWater, Package
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,26 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
   // Detail modal for history
   const [detailShift, setDetailShift] = useState<any | null>(null);
 
+  // ── Drinks Summary Modal ────────────────────────────────────────────
+  const [drinksShift, setDrinksShift] = useState<any | null>(null);
+  const [drinksData, setDrinksData] = useState<{ items: { name: string; category: string; quantity: number; total: number }[]; totalQty: number; totalAmount: number } | null>(null);
+  const [drinksLoading, setDrinksLoading] = useState(false);
+
+  const openDrinksSummary = async (shift: any) => {
+    setDrinksShift(shift);
+    setDrinksData(null);
+    setDrinksLoading(true);
+    try {
+      const data = await getShiftItemsBreakdown(shift.id);
+      setDrinksData(data);
+    } catch (e: any) {
+      toast.error(e?.message ?? "تعذر تحميل ملخص المشاريب");
+      setDrinksShift(null);
+    } finally {
+      setDrinksLoading(false);
+    }
+  };
+
   // ── Auto-Refresh every 30 seconds ──────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,7 +111,8 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
     if (showOpenModal) setShowOpenModal(false);
     if (showCloseModal) setShowCloseModal(false);
     if (detailShift) setDetailShift(null);
-  }, showOpenModal || showCloseModal || detailShift !== null);
+    if (drinksShift) setDrinksShift(null);
+  }, showOpenModal || showCloseModal || detailShift !== null || drinksShift !== null);
 
   useKeyPress("Enter", () => {
     if (isPending) return;
@@ -120,9 +142,10 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
   const handleCloseShift = () => {
     const cash = parseFloat(actualCash);
     if (isNaN(cash) || cash < 0) { toast.error(isRTL ? "يرجى إدخال المبلغ الفعلي" : "Enter actual cash"); return; }
+    const shiftIdToClose = activeShift.id;
     startTransition(async () => {
       try {
-        const result = await closeShift(activeShift.id, cash, closeNotes || undefined);
+        const result = await closeShift(shiftIdToClose, cash, closeNotes || undefined);
         if (!result.success) {
           toast.error(result.message);
           return;
@@ -131,6 +154,17 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
         const msg = v >= 0 ? `زيادة +${v.toFixed(2)} ج` : `عجز ${v.toFixed(2)} ج`;
         toast.success(`تم إغلاق الوردية — ${msg}`);
         setShowCloseModal(false); setActualCash(""); setCloseNotes("");
+
+        // ── Auto-show drinks summary after closing ──────────────────
+        setDrinksShift({ id: shiftIdToClose, closedAt: new Date().toISOString() });
+        setDrinksData(null);
+        setDrinksLoading(true);
+        try {
+          const breakdown = await getShiftItemsBreakdown(shiftIdToClose);
+          setDrinksData(breakdown);
+        } catch { setDrinksData({ items: [], totalQty: 0, totalAmount: 0 }); }
+        finally { setDrinksLoading(false); }
+        // ────────────────────────────────────────────────────────────
 
         if (searchParams.get("pending") === "logout") {
           await logout();
@@ -361,6 +395,12 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => openDrinksSummary(shift)}
+                            className="p-1.5 rounded-lg hover:bg-amber-500/10 text-muted-foreground hover:text-amber-400 transition-colors"
+                            title={isRTL ? "ملخص المشاريب" : "Drinks Summary"}>
+                            <Coffee className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => window.open(`/print/shift/${shift.id}`, "_blank")}
                             className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors"
                             title={isRTL ? "طباعة" : "Print"}>
@@ -456,6 +496,129 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   </div>
                 )}
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Drinks Summary Modal ── */}
+      <AnimatePresence>
+        {drinksShift && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setDrinksShift(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.96, opacity: 0, y: 8 }}
+              className="glass-card w-full max-w-md rounded-2xl relative z-[10000] border-t-4 max-h-[85vh] overflow-hidden flex flex-col"
+              style={{ borderTopColor: "#f59e0b" }}
+              dir={isRTL ? "rtl" : "ltr"}
+            >
+              {/* Header */}
+              <div className={cn("flex justify-between items-center p-5 border-b border-border", isRTL && "flex-row-reverse")}>
+                <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                    <Coffee className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div className={isRTL ? "text-right" : "text-left"}>
+                    <h2 className="text-base font-black text-foreground">
+                      {isRTL ? "ملخص المشاريب" : "Drinks Summary"}
+                    </h2>
+                    {drinksShift.closedAt && (
+                      <p className="text-[10px] text-muted-foreground font-mono">
+                        {format(new Date(drinksShift.closedAt), "dd/MM/yyyy — HH:mm")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setDrinksShift(null)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="overflow-y-auto flex-1 scrollbar-hide">
+                {drinksLoading ? (
+                  <div className="p-12 flex flex-col items-center gap-3 text-muted-foreground">
+                    <RefreshCw className="w-8 h-8 animate-spin text-amber-400" />
+                    <p className="text-sm font-bold">{isRTL ? "جاري التحميل..." : "Loading..."}</p>
+                  </div>
+                ) : drinksData && drinksData.items.length === 0 ? (
+                  <div className="p-12 flex flex-col items-center gap-3 text-muted-foreground">
+                    <Package className="w-12 h-12 opacity-20" />
+                    <p className="text-sm font-bold">
+                      {isRTL ? "لا توجد مشاريب في هذه الوردية" : "No drinks ordered in this shift"}
+                    </p>
+                  </div>
+                ) : drinksData ? (
+                  <div className="p-4 space-y-2">
+                    {drinksData.items.map((item, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: isRTL ? 12 : -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.04 }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60 hover:bg-card transition-colors",
+                          isRTL && "flex-row-reverse text-right"
+                        )}
+                      >
+                        {/* Quantity badge */}
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center justify-center shrink-0">
+                          <span className="text-xl font-black text-amber-400 leading-none">{item.quantity}</span>
+                          <span className="text-[9px] text-amber-400/70 font-bold uppercase">{isRTL ? "قطعة" : "pcs"}</span>
+                        </div>
+                        {/* Item info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-foreground truncate">{item.name}</p>
+                          {item.category && (
+                            <span className="inline-block text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-muted text-muted-foreground mt-0.5">
+                              {item.category}
+                            </span>
+                          )}
+                        </div>
+                        {/* Revenue */}
+                        <div className={cn("text-right shrink-0", isRTL && "text-left")}>
+                          <p className="font-mono font-black text-foreground">{item.total.toFixed(2)}</p>
+                          <p className="text-[10px] text-muted-foreground font-bold">ج.م</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Footer totals */}
+              {drinksData && drinksData.items.length > 0 && (
+                <div className={cn(
+                  "border-t border-border p-4 bg-amber-500/5 flex items-center justify-between gap-4",
+                  isRTL && "flex-row-reverse"
+                )}>
+                  <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
+                      <Coffee className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div className={isRTL ? "text-right" : ""}>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                        {isRTL ? "إجمالي الأصناف" : "Total Items"}
+                      </p>
+                      <p className="font-black text-amber-400 text-lg leading-none">
+                        {drinksData.totalQty} <span className="text-xs font-bold text-muted-foreground">{isRTL ? "قطعة" : "pcs"}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className={isRTL ? "text-left" : "text-right"}>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                      {isRTL ? "الإيراد" : "Revenue"}
+                    </p>
+                    <p className="font-mono font-black text-foreground text-xl leading-none">
+                      {drinksData.totalAmount.toFixed(2)} <span className="text-xs font-bold text-muted-foreground">ج.م</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         )}

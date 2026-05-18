@@ -40,6 +40,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isMenuPage = pathname.startsWith('/menu');
   const isPrint = pathname.startsWith('/print');
   const isAuth = pathname.startsWith('/login') || pathname.startsWith('/sign-up');
+  const isSuperAdmin = pathname.startsWith('/super-admin');
   const isFullWidth = isMenuPage || isPrint || isAuth;
 
   return (
@@ -70,7 +71,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      {!isFullWidth && <PendingOrdersWidget />}
+      {!isFullWidth && !isSuperAdmin && <PendingOrdersWidget />}
       <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
     </div>
   );

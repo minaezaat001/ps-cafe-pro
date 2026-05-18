@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { decToNumber } from "@/lib/decimals";
 import { getAppSetting } from "./settings.actions";
+import { getTenantWhereForRead } from "@/lib/tenant-scope";
 
 export type CustomerMenuResult<T> = { success: true; data: T } | { success: false; message: string };
 
@@ -200,8 +201,11 @@ export async function cancelPendingOrder(orderId: string): Promise<{ success: tr
 
 export async function getPendingOrders() {
   try {
+    // Scope to the calling user's tenant so orders don't bleed across cafes.
+    const tenantWhere = await getTenantWhereForRead().catch(() => ({}));
+
     const orders = await prisma.order.findMany({
-      where: { status: "PENDING", isDeleted: false },
+      where: { status: "PENDING", isDeleted: false, ...tenantWhere },
       include: {
         inventoryItem: true,
         session: {

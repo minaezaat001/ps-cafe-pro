@@ -583,3 +583,56 @@ export async function getAdvancedPerformanceMetrics() {
     return null;
   }
 }
+
+/** Returns a breakdown of cafeteria items (drinks, food) delivered during a specific shift. */
+export async function getShiftItemsBreakdown(shiftId: string): Promise<{
+  items: { name: string; category: string; quantity: number; total: number }[];
+  totalQty: number;
+  totalAmount: number;
+}> {
+  const user = await requireAuthUser();
+  if (user.role !== "ADMIN" && !user.permissions?.includes("shift.manage")) {
+    throw new Error("Forbidden");
+  }
+
+  // Orders directly linked to the shift (via QR / cafeteria orders)
+  const directOrders = await prisma.order.findMany({
+    where: { shiftId, isDeleted: false, status: "DELIVERED" },
+    include: { inventoryItem: true },
+  });
+
+  // Orders linked via session → shift (legacy path where shiftId was set on session)
+  const sessionOrders = await prisma.order.findMany({
+    where: {
+      isDeleted: false,
+      status: "DELIVERED",
+      shiftId: null,
+      session: { shiftId },
+    },
+    include: { inventoryItem: true },
+  });
+
+  const allOrders = [...directOrders, ...sessionOrders];
+
+  // Aggregate by inventory item
+  const itemMap: Record<string, { name: string; category: string; quantity: number; total: number }> = {};
+  for (const o of allOrders) {
+    const key = o.inventoryItemId;
+    if (!itemMap[key]) {
+      itemMap[key] = {
+        name: o.inventoryItem.name,
+        category: o.inventoryItem.category ?? "",
+        quantity: 0,
+        total: 0,
+      };
+    }
+    itemMap[key].quantity += o.quantity;
+    itemMap[key].total += decToNumber(o.priceAtTime) * o.quantity;
+  }
+
+  const items = Object.values(itemMap).sort((a, b) => b.quantity - a.quantity);
+  const totalQty = items.reduce((acc, i) => acc + i.quantity, 0);
+  const totalAmount = items.reduce((acc, i) => acc + i.total, 0);
+
+  return { items, totalQty, totalAmount };
+}
