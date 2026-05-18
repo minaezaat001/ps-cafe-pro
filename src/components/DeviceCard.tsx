@@ -374,12 +374,14 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
 
   useEffect(() => {
     if (!session || !session.isActive) return;
-    setNow(Date.now()); // Set initial client-side time
+    setNow(Date.now());
     const interval = setInterval(() => {
       const currentNow = Date.now();
       setNow(currentNow);
-      const start = new Date(session.startTime).getTime();
-      let diff = Math.max(0, currentNow - start);
+      const startMs = new Date(session.startTime).getTime();
+      if (Number.isNaN(startMs)) return;
+      let diff = currentNow - startMs;
+      if (diff < 0) diff = 0;
       const totalMs = session.type === 'FIXED' && session.durationMinutes ? session.durationMinutes * 60000 : Infinity;
 
       if (diff >= totalMs) {
@@ -390,9 +392,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
       }
 
       const duration = intervalToDuration({ start: 0, end: diff });
-      const h = String(duration.hours || 0).padStart(2, '0');
-      const m = String(duration.minutes || 0).padStart(2, '0');
-      const s = String(duration.seconds || 0).padStart(2, '0');
+      const h = String(Math.max(0, duration.hours || 0)).padStart(2, '0');
+      const m = String(Math.max(0, duration.minutes || 0)).padStart(2, '0');
+      const s = String(Math.max(0, duration.seconds || 0)).padStart(2, '0');
       setElapsed(`${h}:${m}:${s}`);
 
       if (session.type === 'FIXED' && session.durationMinutes) {
