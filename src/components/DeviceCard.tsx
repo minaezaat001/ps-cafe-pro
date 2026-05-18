@@ -379,7 +379,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
       const currentNow = Date.now();
       setNow(currentNow);
       const start = new Date(session.startTime).getTime();
-      let diff = currentNow - start;
+      let diff = Math.max(0, currentNow - start);
       const totalMs = session.type === 'FIXED' && session.durationMinutes ? session.durationMinutes * 60000 : Infinity;
 
       if (diff >= totalMs) {
