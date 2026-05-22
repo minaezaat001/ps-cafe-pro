@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Calendar, TrendingUp, TrendingDown, DollarSign, Clock, Package, Filter, FileText, X, Eye, Download, Printer, RefreshCw, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import dynamic from 'next/dynamic';
@@ -65,6 +65,8 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
     start: searchParams.get('start') || format(new Date(), 'yyyy-MM-dd'),
     end: searchParams.get('end') || format(new Date(), 'yyyy-MM-dd'),
   });
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   const handleFilter = () => router.push(`/reports?start=${dateRange.start}&end=${dateRange.end}`);
 
@@ -223,12 +225,12 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
         <div className={cn('w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-muted/30 p-3 rounded-2xl border border-border backdrop-blur-xl shadow-2xl', isRTL && 'sm:flex-row-reverse')}>
           <div className="flex flex-col gap-1.5 px-1 flex-1 sm:flex-none">
              <span className="text-[10px] font-black text-muted-foreground uppercase px-2">{isRTL ? 'من تاريخ' : 'From Date'}</span>
-             <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
-                <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-                <input type="date" value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
-             </div>
+              <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
+                 <Calendar className="w-4 h-4 text-blue-400 shrink-0 cursor-pointer hover:text-blue-300 transition-colors" onClick={() => startDateRef.current?.showPicker()} />
+                 <input ref={startDateRef} type="date" value={dateRange.start}
+                   onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
+              </div>
           </div>
 
           <div className="flex flex-col gap-1.5 px-1 flex-1 sm:flex-none">
@@ -255,12 +257,12 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
 
           <div className="flex flex-col gap-1.5 px-1 flex-1 sm:flex-none">
              <span className="text-[10px] font-black text-muted-foreground uppercase px-2">{isRTL ? 'إلى تاريخ' : 'To Date'}</span>
-             <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
-                <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-                <input type="date" value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
-             </div>
+              <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
+                 <Calendar className="w-4 h-4 text-blue-400 shrink-0 cursor-pointer hover:text-blue-300 transition-colors" onClick={() => endDateRef.current?.showPicker()} />
+                 <input ref={endDateRef} type="date" value={dateRange.end}
+                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
+              </div>
           </div>
 
           <button onClick={handleFilter}
