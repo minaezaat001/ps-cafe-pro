@@ -229,7 +229,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                  <Calendar className="w-4 h-4 text-blue-400 shrink-0 cursor-pointer hover:text-blue-300 transition-colors" onClick={() => startDateRef.current?.showPicker()} />
                  <input ref={startDateRef} type="date" value={dateRange.start}
                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
+                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark] hide-date-picker" />
               </div>
           </div>
 
@@ -261,7 +261,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                  <Calendar className="w-4 h-4 text-blue-400 shrink-0 cursor-pointer hover:text-blue-300 transition-colors" onClick={() => endDateRef.current?.showPicker()} />
                  <input ref={endDateRef} type="date" value={dateRange.end}
                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark]" />
+                   className="bg-transparent border-none outline-none text-[13px] font-black text-foreground w-full cursor-pointer dark:[color-scheme:dark] hide-date-picker" />
               </div>
           </div>
 

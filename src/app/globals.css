@@ -397,3 +397,9 @@ select option {
   color-scheme: light;
 }
 
+/* Hide the default native date picker button (white calendar icon) */
+input[type="date"].hide-date-picker::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
