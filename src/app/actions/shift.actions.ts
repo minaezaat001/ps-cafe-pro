@@ -16,6 +16,17 @@ export async function openShift(openingFloat: number) {
   const tenantId = await getJwtTenantId();
 
   try {
+    // Pre-flight check: verify no open shift exists for this tenant
+    const existingOpen = await prisma.shift.findFirst({
+      where: {
+        status: "OPEN",
+        ...(tenantId ? { tenantId } : {}),
+      },
+    });
+    if (existingOpen) {
+      throw new Error("هناك وردية مفتوحة بالفعل. يجب إغلاقها أولاً.");
+    }
+
     const shift = await prisma.shift.create({
       data: {
         openedByUserId: user.id,
@@ -34,7 +45,7 @@ export async function openShift(openingFloat: number) {
       variance: decToNumber(shift.variance),
     };
   } catch (error: any) {
-    // Handle database-level unique constraint violation
+    // Handle database-level partial unique index violation (concurrent create race)
     if (error.code === "P2002" && error.meta?.target?.includes("only_one_open_shift_per_tenant")) {
       throw new Error("هناك وردية مفتوحة بالفعل. يجب إغلاقها أولاً.");
     }

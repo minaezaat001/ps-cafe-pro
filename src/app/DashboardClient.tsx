@@ -30,6 +30,7 @@ export default function DashboardClient({
   activeShift,
   appBaseUrl,
   showDeviceQr,
+  initialServerTime,
 }: {
   initialDevices: DashboardDeviceSnapshot[];
   initialRevision: string;
@@ -37,10 +38,14 @@ export default function DashboardClient({
   activeShift?: unknown;
   appBaseUrl: string;
   showDeviceQr?: boolean;
+  initialServerTime?: number;
 }) {
   const { t, isRTL } = useLang();
   const [isCompact, setIsCompact] = useState(false);
   const [devices, setDevices] = useState<DashboardDeviceSnapshot[]>(initialDevices);
+  const [serverTimeOffset, setServerTimeOffset] = useState<number>(
+    initialServerTime ? initialServerTime - Date.now() : 0
+  );
   const revRef = useRef<string>(initialRevision);
   const prevOrdersRef = useRef<Record<string, number>>({});
 
@@ -67,6 +72,7 @@ export default function DashboardClient({
     if (r.success) {
       revRef.current = r.revision;
       setDevices(r.devices);
+      if (r.serverTime) setServerTimeOffset(r.serverTime - Date.now());
     }
   }, []);
 
@@ -76,6 +82,7 @@ export default function DashboardClient({
       if (cancelled) return;
       const r = await getDevicesSnapshotForDashboard();
       if (cancelled || !r.success) return;
+      if (r.serverTime) setServerTimeOffset(r.serverTime - Date.now());
       if (r.revision === revRef.current) return;
       revRef.current = r.revision;
       setDevices(r.devices);
@@ -164,6 +171,7 @@ export default function DashboardClient({
               onMutationComplete={refreshFromServer}
               showQrButton={showDeviceQr}
               menuBaseUrl={appBaseUrl}
+              serverTimeOffset={serverTimeOffset}
             />
           ))}
         </div>

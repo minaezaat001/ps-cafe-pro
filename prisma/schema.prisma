@@ -214,8 +214,12 @@ model Shift {
   sales                 Sale[]
   financialTransactions FinancialTransaction[]
 
-  // Database-level constraint: only one open shift per tenant
-  @@unique([tenantId, status], name: "only_one_open_shift_per_tenant")
+  // Performance index for tenant + status queries (e.g. finding the active shift).
+  // The actual "only one OPEN shift per tenant" constraint is enforced via a
+  // PostgreSQL partial unique index created in a raw SQL migration:
+  //   CREATE UNIQUE INDEX only_one_open_shift_per_tenant
+  //     ON "Shift" ("tenantId") WHERE status = 'OPEN';
+  @@index([tenantId, status])
 }
 
 model AppSetting {

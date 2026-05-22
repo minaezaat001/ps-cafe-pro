@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Gamepad2, Plus, Trash2, Edit2, Monitor, X, Settings2, Tv, Laptop, Smartphone, Headset, Cpu, Check } from 'lucide-react';
 import { addDevice, updateDevice, deleteDevice, addDeviceType, deleteDeviceType, updateDeviceType } from '@/app/actions';
 import { toast } from 'sonner';
@@ -68,6 +68,24 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
 
   const defaultType = deviceTypes && deviceTypes.length > 0 ? deviceTypes[0].name : '';
   const [formData, setFormData] = useState<{number: string, type: string, hourlyRateSingle: number | string, hourlyRateMulti: number | string}>({ number: '', type: defaultType, hourlyRateSingle: 20, hourlyRateMulti: 30 });
+
+  const colorHex = useMemo(() => {
+    const map: Record<string, string> = {};
+    COLORS.forEach(c => { map[c.name] = c.hex; });
+    return map;
+  }, []);
+
+  const colorLabel = useMemo(() => {
+    const map: Record<string, string> = {};
+    COLORS.forEach(c => { map[c.name] = c.label; });
+    return map;
+  }, []);
+
+  const typeLookup = useMemo(() => {
+    const map: Record<string, any> = {};
+    deviceTypes?.forEach((dt: any) => { map[dt.name] = dt; });
+    return map;
+  }, [deviceTypes]);
 
   // ── Keyboard Shortcuts ─────────────────────────────────
   useKeyPress('Escape', () => {
@@ -156,9 +174,9 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
   };
 
   const handleDeleteType = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this device type?')) return;
-    try { setIsPending(true); await deleteDeviceType(id); toast.success('Type removed'); }
-    catch (err: any) { toast.error(err.message || 'Failed'); }
+    if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا النوع؟' : 'Are you sure you want to delete this device type?')) return;
+    try { setIsPending(true); await deleteDeviceType(id); toast.success(isRTL ? 'تم حذف النوع بنجاح' : 'Type removed'); }
+    catch (err: any) { toast.error(err.message || (isRTL ? 'فشلت العملية' : 'Failed')); }
     finally { setIsPending(false); }
   };
 
@@ -206,12 +224,12 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
           <div key={device.id} className="glass-card p-6 rounded-2xl relative group overflow-hidden">
             <div className={cn('flex justify-between items-start mb-5', isRTL && 'flex-row-reverse')}>
               <div className="p-3 rounded-xl" style={{ 
-                background: `linear-gradient(135deg, ${(COLORS.find(c => c.name === (deviceTypes.find(dt => dt.name === device.type)?.color))?.hex || '#3b82f6')}20, ${(COLORS.find(c => c.name === (deviceTypes.find(dt => dt.name === device.type)?.color))?.hex || '#3b82f6')}10)`,
-                border: `1px solid ${(COLORS.find(c => c.name === (deviceTypes.find(dt => dt.name === device.type)?.color))?.hex || '#3b82f6')}30`,
-                color: COLORS.find(c => c.name === (deviceTypes.find(dt => dt.name === device.type)?.color))?.hex || '#3b82f6'
+                background: `linear-gradient(135deg, ${colorHex[typeLookup[device.type]?.color] || '#3b82f6'}20, ${colorHex[typeLookup[device.type]?.color] || '#3b82f6'}10)`,
+                border: `1px solid ${colorHex[typeLookup[device.type]?.color] || '#3b82f6'}30`,
+                color: colorHex[typeLookup[device.type]?.color] || '#3b82f6'
               }}>
                  {(() => {
-                   const typeObj = deviceTypes.find(dt => dt.name === device.type);
+                   const typeObj = typeLookup[device.type];
                    const Icon = ICONS.find(i => i.name === typeObj?.icon)?.icon || Gamepad2;
                    return <Icon className="w-5 h-5" />;
                  })()}
@@ -238,13 +256,13 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
             <div className={cn("grid grid-cols-2 gap-3")}>
               <div className="p-3 rounded-xl bg-card border border-border">
                 <p className="text-[10px] text-muted-foreground font-bold uppercase mb-1">{t('devices.singleRate')}</p>
-                <p className={cn("text-base font-black", getContrastColor(deviceTypes.find(dt => dt.name === device.type)?.color || 'blue'))}>
+                <p className={cn("text-base font-black", getContrastColor(typeLookup[device.type]?.color || 'blue'))}>
                   {device.hourlyRateSingle} <span className="text-[10px]">EGP/HR</span>
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-card border border-border">
                 <p className="text-[10px] text-muted-foreground font-bold uppercase mb-1">{t('devices.multiRate')}</p>
-                <p className={cn("text-base font-black", (deviceTypes.find(dt => dt.name === device.type)?.color === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-violet-600 dark:text-violet-400'))}>
+                <p className={cn("text-base font-black", (typeLookup[device.type]?.color === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-violet-600 dark:text-violet-400'))}>
                   {device.hourlyRateMulti} <span className="text-[10px]">EGP/HR</span>
                 </p>
               </div>
@@ -372,14 +390,13 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                     </div>
                     <div className="space-y-2 max-h-[25vh] overflow-y-auto scrollbar-hide pr-1">
                       {deviceTypes?.map((t: any) => {
-                        const typeColor = COLORS.find(c => c.name === t.color)?.hex || '#3b82f6';
+                        const typeColor = colorHex[t.color] || '#3b82f6';
                         const TypeIcon = ICONS.find(i => i.name === t.icon)?.icon || Gamepad2;
                         return (
-                          <motion.div 
-                            layout
+                          <div 
                             key={t.id} 
                             className={cn(
-                              "flex justify-between items-center p-4 rounded-2xl border transition-all group relative overflow-hidden",
+                              "flex justify-between items-center p-4 rounded-2xl border transition-colors duration-200 group relative overflow-hidden",
                               isRTL && "flex-row-reverse",
                               editingTypeId === t.id 
                                 ? "border-indigo-500/50 shadow-lg" 
@@ -396,38 +413,38 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                               background: typeColor,
                               [isRTL ? 'right' : 'left']: '0px'
                             }} />
-                            <div className={cn("flex items-center gap-3", isRTL ? 'mr-3' : 'ml-3')}>
-                              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ 
+                            <div className={cn("flex items-center gap-3 min-w-0 flex-1", isRTL ? 'mr-3' : 'ml-3')}>
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ 
                                 background: `${typeColor}15`,
                                 border: `1px solid ${typeColor}30`,
                                 color: typeColor
                               }}>
                                 <TypeIcon className="w-5 h-5" />
                               </div>
-                              <div>
-                                <span className="font-black text-foreground block text-sm">{t.name}</span>
+                              <div className="min-w-0">
+                                <span className="font-black text-foreground block text-sm truncate">{t.name}</span>
                                 <span className="text-[10px] text-muted-foreground font-medium">
-                                  {COLORS.find(c => c.name === t.color)?.label || t.color} · {t.icon}
+                                  {colorLabel[t.color] || t.color} · {t.icon}
                                 </span>
                               </div>
                             </div>
-                            <div className={cn("flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200", isRTL && 'flex-row-reverse')}>
+                            <div className={cn("flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200", isRTL && 'flex-row-reverse')}>
                               <button onClick={() => startEditType(t)} disabled={isPending}
-                                className="p-2 rounded-xl transition-all" style={{
+                                className="p-2 rounded-xl transition-colors" style={{
                                   background: isLight ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.1)',
                                   color: isLight ? '#2563eb' : '#60a5fa'
                                 }}>
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button onClick={() => handleDeleteType(t.id)} disabled={isPending}
-                                className="p-2 rounded-xl transition-all" style={{
+                                className="p-2 rounded-xl transition-colors" style={{
                                   background: isLight ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.1)',
                                   color: isLight ? '#dc2626' : '#f87171'
                                 }}>
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                          </motion.div>
+                          </div>
                         );
                       })}
                     </div>
@@ -482,7 +499,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                       <label className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest block px-1">{t('devices.stationIcon')}</label>
                       <div className="flex flex-wrap gap-2.5">
                         {ICONS.map((item) => {
-                          const selectedColor = COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6';
+                          const selectedColor = colorHex[newTypeColor] || '#3b82f6';
                           return (
                             <button
                               key={item.name}
@@ -553,21 +570,21 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                       background: isLight 
                         ? 'rgba(255,255,255,0.98)'
                         : 'linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.85))',
-                      borderTopColor: COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6',
+                      borderTopColor: colorHex[newTypeColor] || '#3b82f6',
                       boxShadow: isLight 
-                        ? `0 4px 20px -4px ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}25, 0 8px 30px -10px rgba(0,0,0,0.12)`
-                        : `0 20px 50px -12px ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}40`,
+                        ? `0 4px 20px -4px ${(colorHex[newTypeColor] || '#3b82f6')}25, 0 8px 30px -10px rgba(0,0,0,0.12)`
+                        : `0 20px 50px -12px ${(colorHex[newTypeColor] || '#3b82f6')}40`,
                       border: isLight ? '1px solid rgba(15,23,42,0.08)' : 'none',
-                      borderTop: `4px solid ${COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6'}`
+                      borderTop: `4px solid ${colorHex[newTypeColor] || '#3b82f6'}`
                     }}
                   >
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
-                            background: `linear-gradient(135deg, ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}20, ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}10)`,
-                            border: `1px solid ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}30`,
-                            color: COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6'
+                            background: `linear-gradient(135deg, ${(colorHex[newTypeColor] || '#3b82f6')}20, ${(colorHex[newTypeColor] || '#3b82f6')}10)`,
+                            border: `1px solid ${(colorHex[newTypeColor] || '#3b82f6')}30`,
+                            color: colorHex[newTypeColor] || '#3b82f6'
                           }}>
                             {(() => {
                               const PreviewIcon = ICONS.find(i => i.name === newTypeIcon)?.icon || Gamepad2;
@@ -601,8 +618,8 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                         </div>
                         <div className="grid grid-cols-2 gap-2.5">
                           <div className="h-10 rounded-xl" style={{
-                            background: `${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}15`,
-                            border: `1px solid ${(COLORS.find(c => c.name === newTypeColor)?.hex || '#3b82f6')}25`,
+                            background: `${(colorHex[newTypeColor] || '#3b82f6')}15`,
+                            border: `1px solid ${(colorHex[newTypeColor] || '#3b82f6')}25`,
                           }}></div>
                           <div className="h-10 rounded-xl" style={{
                             background: isLight ? 'rgba(15,23,42,0.03)' : 'rgba(255,255,255,0.04)',

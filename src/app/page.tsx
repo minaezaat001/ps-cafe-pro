@@ -40,6 +40,7 @@ export default async function DashboardPage() {
       activeShift={activeShift}
       appBaseUrl={appBaseUrl}
       showDeviceQr={user?.role === "ADMIN"}
+      initialServerTime={Date.now()}
     />
   );
 }

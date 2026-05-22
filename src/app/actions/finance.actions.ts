@@ -7,7 +7,7 @@ import { toDecimal } from "@/lib/decimals";
 import { requirePermissionAsync, requireAdminAsync, requireAuthUser } from "@/lib/action-guards";
 import { FT_SESSION_GAMING } from "@/lib/finance-constants";
 import { createAuditLog } from "@/lib/audit";
-import { getTenantWhereForRead } from "@/lib/tenant-scope";
+import { getTenantWhereForRead, getJwtTenantId } from "@/lib/tenant-scope";
 
 export async function addFinancialTransaction(data: {
   type: "INCOME" | "EXPENSE";
@@ -15,8 +15,7 @@ export async function addFinancialTransaction(data: {
   description: string;
   reason: string;
 }) {
-  const userBuffer = await requirePermissionAsync("finance.manage");
-  const user = await requireAuthUser();
+  const user = await requirePermissionAsync("finance.manage");
 
   // Restrict STAFF users from adding EXPENSE without explicit permission
   if (data.type === "EXPENSE") {
@@ -31,22 +30,24 @@ export async function addFinancialTransaction(data: {
     }
   }
 
+  const tenantId = (await getJwtTenantId()) || null;
+
   const shift = await prisma.shift.findFirst({
-    where: { status: "OPEN" },
+    where: {
+      status: "OPEN",
+      ...(tenantId ? { tenantId } : {}),
+    },
   });
   if (!shift) {
     throw new Error("يجب فتح وردية الكاشير لربط المعاملة المالية بالوردية");
   }
-
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
-  const tenantId = (await getJwtTenantId()) || null;
 
   const transaction = await prisma.financialTransaction.create({
     data: {
       type: data.type,
       amount: toDecimal(data.amount),
       description: data.description,
-      userId: userBuffer.id,
+      userId: user.id,
       shiftId: shift.id,
       tenantId,
     },
@@ -80,8 +81,11 @@ export async function getFinancialTransactions(startDate?: Date, endDate?: Date)
     throw new Error("Forbidden");
   }
 
+  const tenantId = (await getJwtTenantId()) || null;
+
   const where: Prisma.FinancialTransactionWhereInput = {
     type: { not: FT_SESSION_GAMING },
+    ...(tenantId ? { tenantId } : {}),
   };
 
   if (startDate && endDate) {
@@ -98,8 +102,7 @@ export async function getFinancialTransactions(startDate?: Date, endDate?: Date)
 }
 
 export async function deleteFinancialTransaction(id: string, reason: string = "Financial transaction deleted") {
-  await requireAdminAsync();
-  const user = await requireAuthUser();
+  const user = await requireAdminAsync();
 
   const row = await prisma.financialTransaction.findUnique({ where: { id } });
   if (row?.type === FT_SESSION_GAMING) {

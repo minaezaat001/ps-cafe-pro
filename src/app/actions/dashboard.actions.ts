@@ -10,7 +10,7 @@ import {
 } from "@/lib/dashboard-serialize";
 
 export type DevicesSnapshotResult =
-  | { success: true; devices: DashboardDeviceSnapshot[]; revision: string }
+  | { success: true; devices: DashboardDeviceSnapshot[]; revision: string; serverTime: number }
   | { success: false; error: string };
 
 /**
@@ -59,6 +59,7 @@ export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotR
       success: true,
       devices,
       revision: snapshotRevision(devices),
+      serverTime: Date.now(),
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";

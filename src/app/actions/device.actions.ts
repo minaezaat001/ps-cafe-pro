@@ -101,16 +101,29 @@ export async function deleteDeviceType(id: string) {
   await requirePermissionAsync("devices.manage");
 
   const typeObj = await prisma.deviceType.findUnique({ where: { id } });
-  if (!typeObj) throw new Error("Type not found");
+  if (!typeObj) throw new Error("Type not found / النوع غير موجود");
 
   const activeDevices = await prisma.device.findFirst({ where: { type: typeObj.name } });
   if (activeDevices) {
     throw new Error(
-      `Cannot delete this type! There are devices still assigned as "${typeObj.name}". Please reassign or delete those devices first.`
+      `لا يمكن مسح هذا النوع لأنه مستخدم بالفعل مع أجهزة قائمة / Cannot delete this type because it is currently assigned to existing devices.`
     );
   }
 
-  await prisma.deviceType.delete({ where: { id } });
+  try {
+    await prisma.deviceType.delete({ where: { id } });
+  } catch (err: any) {
+    // Catch Prisma foreign key constraint errors (P2003, P2014)
+    if (err?.code === 'P2003' || err?.code === 'P2014' || err?.message?.includes('Foreign key constraint')) {
+      throw new Error(
+        `لا يمكن مسح هذا النوع لأنه مستخدم بالفعل مع أجهزة قائمة / Cannot delete this type because it is currently assigned to existing devices.`
+      );
+    }
+    throw new Error(
+      `حدث خطأ أثناء الحذف. حاول مرة أخرى / An error occurred while deleting. Please try again.`
+    );
+  }
+
   revalidatePath("/");
   revalidatePath("/devices");
 }

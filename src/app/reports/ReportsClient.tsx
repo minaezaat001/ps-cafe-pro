@@ -82,7 +82,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
   // ── xlsx loaded on-demand only when user clicks Export ──
   const exportToExcel = useCallback(async () => {
     // Dynamic import: xlsx (~500KB) is NOT in the initial bundle
-    const XLSX = (await import('xlsx')).default;
+    const XLSX = await import('xlsx');
 
     // Collect Sessions Data
     const sessionsSheet = filteredData.sessions.map(s => {
@@ -233,12 +233,13 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
 
           <div className="flex flex-col gap-1.5 px-1 flex-1 sm:flex-none">
              <span className="text-[10px] font-black text-muted-foreground uppercase px-2">{isRTL ? 'تصفية بالوردية' : 'Filter by Shift'}</span>
-             <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
+             <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-violet-500/50 transition-all">
                 <Clock className="w-4 h-4 text-violet-400 shrink-0" />
                 <select 
                   value={selectedShiftId} 
                   onChange={(e) => setSelectedShiftId(e.target.value)}
-                  className="bg-transparent border-none outline-none text-[12px] font-bold text-foreground w-full cursor-pointer dark:[color-scheme:dark] py-1"
+                  className="bg-transparent border-none outline-none text-[12px] font-bold text-foreground w-full cursor-pointer py-1 appearance-none"
+                  style={{ WebkitAppearance: 'none' }}
                 >
                   <option value="ALL">{isRTL ? 'الكل (جميع الورديات)' : 'All Shifts'}</option>
                   {data.shifts.map(shift => (

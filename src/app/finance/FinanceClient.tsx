@@ -70,8 +70,8 @@ export default function FinanceClient({ initialTransactions, user }: { initialTr
         setAmount("");
         setDescription("");
         window.location.reload(); // Quick refresh
-      } catch (err) {
-        toast.error(isRTL ? "فشل في تسجيل العملية" : "Failed to add transaction");
+      } catch (err: any) {
+        toast.error(err.message || (isRTL ? "فشل في تسجيل العملية" : "Failed to add transaction"));
       }
     });
   };

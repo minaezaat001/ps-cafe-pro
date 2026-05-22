@@ -158,9 +158,15 @@ export async function processQuickSale(items: { itemId: string; quantity: number
   const userBuffer = await requirePermissionAsync("cafeteria.manage");
   const user = await requireAuthUser();
 
+  const { getJwtTenantId } = await import("@/lib/tenant-scope");
+  const tenantId = (await getJwtTenantId()) || null;
+
   await prisma.$transaction(async (tx) => {
     const activeShift = await tx.shift.findFirst({
-      where: { status: "OPEN" },
+      where: {
+        status: "OPEN",
+        ...(tenantId ? { tenantId } : {}),
+      },
     });
 
     if (!activeShift) {
@@ -212,8 +218,6 @@ export async function processQuickSale(items: { itemId: string; quantity: number
       });
     }
 
-    const { getJwtTenantId } = await import("@/lib/tenant-scope");
-    const tenantId = (await getJwtTenantId()) || null;
 
     const sale = await tx.sale.create({
       data: {

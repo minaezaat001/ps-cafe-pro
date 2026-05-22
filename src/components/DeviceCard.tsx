@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Monitor,
   Gamepad2,
@@ -71,9 +71,10 @@ interface DeviceCardProps {
   deviceTypes?: any[];
   isCompact?: boolean;
   activeShift?: any;
-  onMutationComplete?: () => void | Promise<void>;
   showQrButton?: boolean;
   menuBaseUrl?: string;
+  serverTimeOffset?: number;
+  onMutationComplete?: () => void | Promise<void>;
 }
 
 export const DeviceCard: React.FC<DeviceCardProps> = ({
@@ -86,6 +87,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
   onMutationComplete,
   showQrButton,
   menuBaseUrl,
+  serverTimeOffset = 0,
 }) => {
   const router = useRouter();
   const { t, isRTL } = useLang();
@@ -178,20 +180,17 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
     }
   };
 
-  const getAccent = () => {
-    const typeObj = deviceTypes?.find(t => t.name === device.type);
+  const accent = useMemo(() => {
+    const typeObj = deviceTypes?.find((t: any) => t.name === device.type);
     if (typeObj) return getThemeVars(typeObj.color);
-
-    // Legacy fallbacks if not mapped
     if (device.type === 'PRIVATE') return getThemeVars('amber');
     if (device.type === 'PS4') return getThemeVars('violet');
     return getThemeVars('blue');
-  };
-  const accent = getAccent();
+  }, [deviceTypes, device.type]);
   const accentHex = accent.hex;
 
-  const getDeviceIcon = () => {
-    const typeObj = deviceTypes?.find(t => t.name === device.type);
+  const deviceIcon = useMemo(() => {
+    const typeObj = deviceTypes?.find((t: any) => t.name === device.type);
     const iconName = typeObj?.icon || (device.type === 'PRIVATE' ? 'Monitor' : 'Gamepad2');
     
     const iconMap: Record<string, React.ReactNode> = {
@@ -205,7 +204,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
     };
 
     return iconMap[iconName] || <Gamepad2 className="w-5 h-5" />;
-  };
+  }, [deviceTypes, device.type]);
 
   const playAlertSound = () => {
     try {
@@ -376,7 +375,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
     if (!session || !session.isActive) return;
     setNow(Date.now());
     const interval = setInterval(() => {
-      const currentNow = Date.now();
+      const currentNow = Date.now() + serverTimeOffset;
       setNow(currentNow);
       const startMs = new Date(session.startTime).getTime();
       if (Number.isNaN(startMs)) return;
@@ -493,7 +492,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                   <div className={cn('p-4 rounded-xl bg-card border border-border', isRTL ? 'text-left' : 'text-right')}>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.mode')}</p>
                     <p className={cn("text-lg font-black", accent.text)}>
-                      {isMultiMode ? t('device.multi') : t('device.single')}
+                      {session?.isMulti ? t('device.multi') : t('device.single')}
                     </p>
                   </div>
                 </div>
@@ -1055,7 +1054,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
         dir={isRTL ? 'rtl' : 'ltr'}
       >
         <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
-          <div className="w-10 h-10 rounded text-muted-foreground flex items-center justify-center bg-background">{getDeviceIcon()}</div>
+          <div className="w-10 h-10 rounded text-muted-foreground flex items-center justify-center bg-background">{deviceIcon}</div>
           <div className={isRTL ? 'text-right' : 'text-left'}>
             <h3 className="font-black text-sm text-foreground">#{device.number}</h3>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{device.type}</p>
@@ -1145,7 +1144,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                 color: accent.hex
               }}
             >
-              {getDeviceIcon()}
+{deviceIcon}
             </div>
             <div className={isRTL ? 'text-right' : ''}>
               <div className={cn('flex items-center gap-2', isRTL && 'flex-row-reverse')}>
@@ -1414,10 +1413,10 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             </button>
           </div>
 
-          {/* ── Fixed Time Input ── */}
-          <div className="flex gap-2">
+          {/* ── Fixed Time Input & Start Button Consolidation ── */}
+          <div className="flex flex-col gap-3">
             <div 
-              className="flex-1 rounded-xl flex items-center px-3 transition-all focus-within:ring-1 focus-within:ring-blue-500/30"
+              className="w-full rounded-xl flex items-center px-3 transition-all focus-within:ring-1 focus-within:ring-blue-500/30"
               style={{ 
                 background: isLight ? 'rgba(15,23,42,0.04)' : 'rgba(15,23,42,0.5)',
                 border: isLight ? '1px solid rgba(15,23,42,0.1)' : '1px solid rgba(255,255,255,0.06)'
@@ -1429,38 +1428,25 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                 placeholder={t('device.minutes')}
                 value={fixedMinutes}
                 onChange={(e) => setFixedMinutes(e.target.value)}
-                className="bg-transparent border-none outline-none w-full text-sm font-semibold text-foreground placeholder:text-muted-foreground/40 py-2.5"
+                className="bg-transparent border-none outline-none w-full text-sm font-semibold text-foreground placeholder:text-muted-foreground/40 py-3"
               />
             </div>
-            <button disabled={isPending} onClick={() => handleStart('FIXED')}
-              className="px-4 rounded-xl font-bold transition-all disabled:opacity-50 group flex items-center gap-1"
-              style={{
-                background: 'rgba(139,92,246,0.1)',
-                border: '1px solid rgba(139,92,246,0.25)',
-                color: isLight ? '#6d28d9' : '#a78bfa'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(139,92,246,0.9)';
-                e.currentTarget.style.color = '#fff';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(139,92,246,0.1)';
-                e.currentTarget.style.color = isLight ? '#6d28d9' : '#a78bfa';
-              }}
+            
+            <button disabled={isPending} onClick={() => {
+              if (fixedMinutes && parseInt(fixedMinutes) > 0) {
+                handleStart('FIXED');
+              } else {
+                handleStart('OPEN');
+              }
+            }}
+              className="w-full py-3 rounded-xl font-black text-sm tracking-widest flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50 text-white group overflow-hidden relative"
+              style={{ background: `linear-gradient(135deg, ${accent.hex}, ${accent.hex}cc)` }}
             >
-              <Play className="w-4 h-4 transition-transform group-hover:scale-110" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${accent.hex}dd, ${accent.hex})` }} />
+              <Play className="w-4 h-4 transition-transform group-hover:translate-x-0.5 relative z-10" />
+              <span className="relative z-10">{isPending ? t('device.starting') : (fixedMinutes && parseInt(fixedMinutes) > 0 ? t('device.startFixed') : t('device.startOpen'))}</span>
             </button>
           </div>
-          
-          {/* ── Start Open Session ── */}
-          <button disabled={isPending} onClick={() => handleStart('OPEN')}
-            className="w-full py-3 rounded-xl font-black text-sm tracking-widest flex items-center justify-center gap-2 transition-all hover:shadow-lg active:scale-[0.98] disabled:opacity-50 text-white group overflow-hidden relative"
-            style={{ background: `linear-gradient(135deg, ${accent.hex}, ${accent.hex}cc)` }}
-          >
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(135deg, ${accent.hex}dd, ${accent.hex})` }} />
-            <Play className="w-4 h-4 transition-transform group-hover:translate-x-0.5 relative z-10" />
-            <span className="relative z-10">{isPending ? t('device.starting') : t('device.startOpen')}</span>
-          </button>
         </div>
       )}
 
