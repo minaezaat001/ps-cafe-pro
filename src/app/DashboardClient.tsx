@@ -7,6 +7,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getDevicesSnapshotForDashboard } from "@/app/actions";
 import type { DashboardDeviceSnapshot } from "@/lib/dashboard-serialize";
 import Link from "next/link";
+import { DeviceSkeleton } from "@/components/ui/DeviceSkeleton";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 function cn(...inputs: (string | boolean | undefined)[]) {
   return inputs.filter(Boolean).join(" ");
@@ -17,9 +19,7 @@ const DeviceCard = dynamic(
   () => import("@/components/DeviceCard").then((m) => ({ default: m.DeviceCard })),
   {
     ssr: false,
-    loading: () => (
-      <div className="rounded-2xl border border-border bg-card/50 animate-pulse h-[200px]" />
-    ),
+    loading: () => <DeviceSkeleton />,
   }
 );
 
@@ -160,19 +160,20 @@ export default function DashboardClient({
           )}
         >
           {devices.map((device) => (
-            <DeviceCard
-              key={device.id}
-              device={device}
-              session={device.sessions[0]}
-              allDevices={devices}
-              deviceTypes={deviceTypes}
-              isCompact={isCompact}
-              activeShift={activeShift}
-              onMutationComplete={refreshFromServer}
-              showQrButton={showDeviceQr}
-              menuBaseUrl={appBaseUrl}
-              serverTimeOffset={serverTimeOffset}
-            />
+            <ErrorBoundary key={device.id}>
+              <DeviceCard
+                device={device}
+                session={device.sessions[0]}
+                allDevices={devices}
+                deviceTypes={deviceTypes}
+                isCompact={isCompact}
+                activeShift={activeShift}
+                onMutationComplete={refreshFromServer}
+                showQrButton={showDeviceQr}
+                menuBaseUrl={appBaseUrl}
+                serverTimeOffset={serverTimeOffset}
+              />
+            </ErrorBoundary>
           ))}
         </div>
       </section>

@@ -61,6 +61,7 @@
   --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
   --animate-fade-up: fadeUp 0.3s ease-out forwards;
   --animate-flash-amber: flash-amber 0.4s ease-out;
+  --animate-shimmer: shimmer 1.5s infinite;
 
   /* Custom semantic variables that transition between themes */
   --accent-primary: var(--color-primary);
