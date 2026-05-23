@@ -9,6 +9,7 @@ import { createAuditLog } from "@/lib/audit";
 import { getAppSetting } from "@/app/actions/settings.actions";
 import { toDecimal, decToNumber } from "@/lib/decimals";
 import { FT_SESSION_GAMING } from "@/lib/finance-constants";
+import { StartSessionSchema, EndSessionSchema, AddSessionTimeSchema, CartSchema, OrderItemSchema, validateOrThrow } from "@/lib/validations";
 
 async function findOpenShift() {
   const tenantFilter = await getTenantWhereForRead();
@@ -23,6 +24,7 @@ export async function startSession(
   durationMinutes?: number,
   isMulti: boolean = false
 ) {
+  validateOrThrow(StartSessionSchema, { deviceId, type, durationMinutes, isMulti });
   await requirePermissionAsync("dashboard.manage");
   await requireWritableTenantContext();
   const user = await requireAuthUser();
@@ -88,7 +90,8 @@ export async function startSession(
   revalidatePath("/");
 }
 
-export async function endSession(sessionId: string, reason: string = "Session ended") {
+export async function endSession(sessionId: string, reason: string = "Session ended", discountPercent: number = 0, discountReason?: string) {
+  validateOrThrow(EndSessionSchema, { sessionId, reason, discountPercent, discountReason });
   await requirePermissionAsync("dashboard.manage");
   await requireWritableTenantContext();
   const userBuffer = await requireAuthUser();
@@ -119,7 +122,11 @@ export async function endSession(sessionId: string, reason: string = "Session en
     }
 
     const now = new Date();
-    const gamingBreakdown = getBillBreakdown(session, session.device, now.getTime());
+    const gamingBreakdown = getBillBreakdown(
+      { ...session, discountPercent },
+      session.device,
+      now.getTime()
+    );
     const currentSegmentActualCost = calculateActualElapsedCost(session, session.device, now.getTime());
 
     if (
@@ -151,15 +158,18 @@ export async function endSession(sessionId: string, reason: string = "Session en
         accumulatedTimeCost: toDecimal(gamingBreakdown.gaming),
         accumulatedSingleCost: toDecimal(gamingBreakdown.single),
         accumulatedMultiCost: toDecimal(gamingBreakdown.multi),
+        discountPercent: toDecimal(discountPercent),
+        discountReason: discountReason || null,
         shiftId: currentShift.id,
       },
     });
 
+    const collectedAmount = toDecimal(gamingBreakdown.total);
     await tx.financialTransaction.create({
       data: {
         type: FT_SESSION_GAMING,
-        amount: toDecimal(gamingBreakdown.gaming),
-        description: `Session settlement · ${sessionId} · device #${session.device.number}`,
+        amount: collectedAmount,
+        description: `Session settlement · ${sessionId} · device #${session.device.number}${discountPercent > 0 ? ` · ${discountPercent}% discount` : ""}`,
         userId: userBuffer.id,
         shiftId: currentShift.id,
         tenantId: session.tenantId,
@@ -178,7 +188,9 @@ export async function endSession(sessionId: string, reason: string = "Session en
         deviceId: session.deviceId,
         gamingCost: gamingBreakdown.gaming,
         itemsCost: gamingBreakdown.items,
-        totalCost: gamingBreakdown.total,
+        discountPercent,
+        discountAmount: gamingBreakdown.discount,
+        totalCollected: gamingBreakdown.total,
         timestamp: new Date().toISOString()
       }
     });
@@ -263,6 +275,7 @@ export async function toggleSessionMode(sessionId: string, reason: string = "Ses
 }
 
 export async function addSessionTime(sessionId: string, additionalMinutes: number, reason: string = "Session time extended") {
+  validateOrThrow(AddSessionTimeSchema, { sessionId, additionalMinutes, reason });
   await requirePermissionAsync("dashboard.manage");
   await requireWritableTenantContext();
   const user = await requireAuthUser();
@@ -365,6 +378,7 @@ export async function addOrderToSession(
   reason: string = "Order added to session"
 ): Promise<{ success: true } | { success: false; message: string }> {
   try {
+    validateOrThrow(CartSchema, items);
     await requirePermissionAsync("dashboard.manage");
     await requireWritableTenantContext();
     const user = await requireAuthUser();
@@ -446,7 +460,7 @@ export async function addOrderToSession(
     });
     revalidatePath("/");
     revalidatePath("/inventory");
-    revalidatePath("/cafetria");
+    revalidatePath("/cafeteria");
     revalidatePath("/", "layout");
     return { success: true };
   } catch (e) {

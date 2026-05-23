@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { decToNumber } from "@/lib/decimals";
 import { getAppSetting } from "./settings.actions";
 import { getTenantWhereForRead } from "@/lib/tenant-scope";
+import { requirePermissionAsync } from "@/lib/action-guards";
+import { CustomerOrderSchema, OrderItemSchema, validateOrThrow } from "@/lib/validations";
 
 export type CustomerMenuResult<T> = { success: true; data: T } | { success: false; message: string };
 
@@ -75,9 +77,7 @@ export async function submitCustomerOrder(
   cart: { itemId: string; quantity: number }[]
 ): Promise<{ success: true } | { success: false; message: string }> {
   try {
-    if (!cart.length) {
-      return { success: false, message: "السلة فارغة." };
-    }
+    validateOrThrow(CustomerOrderSchema, { deviceId, cart });
 
     const device = await prisma.device.findUnique({ where: { id: deviceId } });
     if (!device) {
@@ -141,7 +141,7 @@ export async function submitCustomerOrder(
 
     revalidatePath("/");
     revalidatePath("/inventory");
-    revalidatePath("/cafetria");
+    revalidatePath("/cafeteria");
 
     return { success: true };
   } catch (e) {
@@ -152,12 +152,12 @@ export async function submitCustomerOrder(
 
 export async function confirmPendingOrder(orderId: string): Promise<{ success: true } | { success: false; message: string }> {
   try {
+    if (!orderId) throw new Error("معرف الطلب مطلوب");
+    await requirePermissionAsync("cafeteria.manage");
+
     const order = await prisma.order.findUnique({ where: { id: orderId }, include: { inventoryItem: true } });
     if (!order) return { success: false, message: "الطلب غير موجود" };
     if (order.status !== "PENDING") return { success: false, message: "حالة الطلب لا تسمح بالتأكيد" };
-    if (order.inventoryItem.stock < order.quantity) {
-      return { success: false, message: `الكمية غير كافية في المخزن. المتاح: ${order.inventoryItem.stock}` };
-    }
 
     await prisma.$transaction(async (tx) => {
       // 1. Mark as DELIVERED
@@ -165,11 +165,14 @@ export async function confirmPendingOrder(orderId: string): Promise<{ success: t
         where: { id: orderId },
         data: { status: "DELIVERED" }
       });
-      // 2. Deduct stock
-      await tx.inventoryItem.update({
-        where: { id: order.inventoryItemId },
+      // 2. Atomic stock decrement with guard
+      const updated = await tx.inventoryItem.updateMany({
+        where: { id: order.inventoryItemId, stock: { gte: order.quantity } },
         data: { stock: { decrement: order.quantity } }
       });
+      if (updated.count === 0) {
+        throw new Error("الكمية غير كافية في المخزن");
+      }
     });
 
     revalidatePath("/");
@@ -182,6 +185,9 @@ export async function confirmPendingOrder(orderId: string): Promise<{ success: t
 
 export async function cancelPendingOrder(orderId: string): Promise<{ success: true } | { success: false; message: string }> {
   try {
+    if (!orderId) throw new Error("معرف الطلب مطلوب");
+    await requirePermissionAsync("cafeteria.manage");
+
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) return { success: false, message: "الطلب غير موجود" };
     if (order.status !== "PENDING") return { success: false, message: "لا يمكن إلغاء طلب تم تنفيذه بالفعل" };

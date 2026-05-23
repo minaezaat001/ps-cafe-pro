@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import path from "path";
 import fs from "fs/promises";
 import { requirePermissionAsync, requireAdminAsync, requireAuthUser } from "@/lib/action-guards";
+import { createAuditLog } from "@/lib/audit";
 import { toDecimal } from "@/lib/decimals";
 
 export async function addDevice(data: {
@@ -98,7 +99,7 @@ export async function addDeviceType(data: { name: string; color: string; icon: s
 }
 
 export async function deleteDeviceType(id: string) {
-  await requirePermissionAsync("devices.manage");
+  const user = await requirePermissionAsync("devices.manage");
 
   const typeObj = await prisma.deviceType.findUnique({ where: { id } });
   if (!typeObj) throw new Error("Type not found / النوع غير موجود");
@@ -111,7 +112,16 @@ export async function deleteDeviceType(id: string) {
   }
 
   try {
-    await prisma.deviceType.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.deviceType.delete({ where: { id } });
+      await createAuditLog({
+        action: "DELETE_DEVICE_TYPE",
+        entityType: "DeviceType",
+        entityId: id,
+        reason: `Device type deleted: ${typeObj.name}`,
+        metadata: { deletedBy: user.id, typeName: typeObj.name, timestamp: new Date().toISOString() },
+      }, tx);
+    });
   } catch (err: any) {
     // Catch Prisma foreign key constraint errors (P2003, P2014)
     if (err?.code === 'P2003' || err?.code === 'P2014' || err?.message?.includes('Foreign key constraint')) {
@@ -129,24 +139,34 @@ export async function deleteDeviceType(id: string) {
 }
 
 export async function updateDeviceType(id: string, data: { name: string; color: string; icon: string }) {
-  await requirePermissionAsync("devices.manage");
+  const user = await requirePermissionAsync("devices.manage");
 
   const oldType = await prisma.deviceType.findUnique({ where: { id } });
   if (!oldType) throw new Error("Type not found");
 
-  if (oldType.name !== data.name) {
-    const exists = await prisma.deviceType.findFirst({ where: { name: data.name } });
-    if (exists) throw new Error("Type name already in use");
+  await prisma.$transaction(async (tx) => {
+    if (oldType.name !== data.name) {
+      const exists = await tx.deviceType.findFirst({ where: { name: data.name } });
+      if (exists) throw new Error("Type name already in use");
 
-    await prisma.device.updateMany({
-      where: { type: oldType.name },
-      data: { type: data.name },
+      await tx.device.updateMany({
+        where: { type: oldType.name },
+        data: { type: data.name },
+      });
+    }
+
+    await tx.deviceType.update({
+      where: { id },
+      data,
     });
-  }
 
-  await prisma.deviceType.update({
-    where: { id },
-    data,
+    await createAuditLog({
+      action: "UPDATE_DEVICE_TYPE",
+      entityType: "DeviceType",
+      entityId: id,
+      reason: `Device type updated: ${oldType.name}`,
+      metadata: { updatedBy: user.id, typeId: id, old: oldType, new: data, timestamp: new Date().toISOString() },
+    }, tx);
   });
 
   revalidatePath("/");
@@ -235,6 +255,26 @@ export async function updateDevice(
     if (typeof data.hourlyRateMulti === "number") payload.hourlyRateMulti = toDecimal(data.hourlyRateMulti);
 
     await tx.device.update({ where: { id }, data: payload });
+
+    // Audit log for device changes
+    const currentUser = await requireAuthUser();
+    const changeDetails: Record<string, { old: unknown; new: unknown }> = {};
+    if (data.number !== undefined) changeDetails.number = { old: oldDevice.number, new: data.number };
+    if (data.type !== undefined) changeDetails.type = { old: oldDevice.type, new: data.type };
+    if (typeof data.hourlyRateSingle === "number") changeDetails.hourlyRateSingle = { old: decToNumber(oldDevice.hourlyRateSingle), new: data.hourlyRateSingle };
+    if (typeof data.hourlyRateMulti === "number") changeDetails.hourlyRateMulti = { old: decToNumber(oldDevice.hourlyRateMulti), new: data.hourlyRateMulti };
+    await createAuditLog({
+      action: "UPDATE_DEVICE",
+      entityType: "Device",
+      entityId: id,
+      reason: "Device settings updated",
+      metadata: {
+        updatedBy: currentUser.id,
+        deviceId: id,
+        changes: changeDetails,
+        timestamp: new Date().toISOString(),
+      },
+    }, tx);
   });
 
   revalidatePath("/");
@@ -242,7 +282,7 @@ export async function updateDevice(
 }
 
 export async function deleteDevice(id: string) {
-  await requirePermissionAsync("devices.manage");
+  const user = await requirePermissionAsync("devices.manage");
 
   const device = await prisma.device.findUnique({
     where: { id },
@@ -251,13 +291,23 @@ export async function deleteDevice(id: string) {
 
   if (!device) throw new Error("الجهاز غير موجود.");
 
-  // If it has history (sessions), we SOFT delete it
-  if (device.sessions.length > 0) {
-    await (prisma.device as any).update({ where: { id }, data: { isDeleted: true } });
-  } else {
-    // If it's a new device with no history, we can HARD delete it
-    await prisma.device.delete({ where: { id } });
-  }
+  await prisma.$transaction(async (tx) => {
+    // If it has history (sessions), we SOFT delete it
+    if (device.sessions.length > 0) {
+      await (tx.device as any).update({ where: { id }, data: { isDeleted: true } });
+    } else {
+      // If it's a new device with no history, we can HARD delete it
+      await tx.device.delete({ where: { id } });
+    }
+
+    await createAuditLog({
+      action: "DELETE_DEVICE",
+      entityType: "Device",
+      entityId: id,
+      reason: `Device deleted: #${device.number}`,
+      metadata: { deletedBy: user.id, deviceId: id, deviceNumber: device.number, hardDelete: device.sessions.length === 0, timestamp: new Date().toISOString() },
+    }, tx);
+  });
   
   revalidatePath("/");
   revalidatePath("/devices");

@@ -81,6 +81,8 @@ model Session {
   accumulatedSingleCost Decimal @default(0)
   accumulatedMultiCost  Decimal @default(0)
   lastRateChangeTime    DateTime  @default(now())
+  discountPercent       Decimal @default(0)
+  discountReason        String?
   shiftId               String?
   tenantId              String?
   tenant                Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -260,4 +262,15 @@ model TenantSettings {
   
   tenantId      String   @unique
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model SystemAnnouncement {
+  id        String   @id @default(cuid())
+  message   String
+  type      String   @default("INFO") // INFO, WARNING, UPDATE
+  isActive  Boolean  @default(true)
+  createdBy String
+  createdAt DateTime @default(now())
+
+  @@index([isActive, createdAt])
 }

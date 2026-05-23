@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Gamepad2, Plus, Trash2, Edit2, Monitor, X, Settings2, Tv, Laptop, Smartphone, Headset, Cpu, Check } from 'lucide-react';
+import { Gamepad2, Plus, Trash2, Edit2, Monitor, X, Settings2, Tv, Laptop, Smartphone, Headset, Cpu, Check, History } from 'lucide-react';
 import { addDevice, updateDevice, deleteDevice, addDeviceType, deleteDeviceType, updateDeviceType } from '@/app/actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import { useLang } from '@/lib/LanguageContext';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/ThemeContext';
 import { useKeyPress } from '@/lib/useKeyPress';
+import PriceHistoryModal from '@/components/PriceHistoryModal';
 
 interface DevicesPageProps { initialDevices: any[]; deviceTypes: any[]; user: any; }
 
@@ -59,6 +60,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
   const [showTypesModal, setShowTypesModal] = useState(false);
   const [editingDevice, setEditingDevice] = useState<any>(null);
   const [isPending, setIsPending] = useState(false);
+  const [priceHistoryFor, setPriceHistoryFor] = useState<{ id: string; name: string } | null>(null);
   
   // New Device Type form state
   const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
@@ -219,6 +221,17 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
         )}
       </div>
 
+      {initialDevices.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Monitor className="w-16 h-16 opacity-20 mb-4" />
+          <p className="font-black text-lg text-foreground mb-1">{isRTL ? 'لا توجد أجهزة' : 'No devices yet'}</p>
+          <p className="text-sm text-muted-foreground/80 mb-4">{isRTL ? 'أضف جهازك الأول لبدء التشغيل' : 'Add your first device to get started'}</p>
+          <button onClick={() => { setShowAddModal(true); setEditingDevice(null); setFormData({ number: '', type: deviceTypes?.[0]?.name || '', hourlyRateSingle: 20, hourlyRateMulti: 30 }); }}
+            className="px-4 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors">
+            {isRTL ? 'إضافة جهاز' : 'Add Device'}
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {initialDevices.map((device) => (
           <div key={device.id} className="glass-card p-6 rounded-2xl relative group overflow-hidden">
@@ -236,6 +249,11 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
               </div>
               {user?.role === 'ADMIN' && (
                 <div className="flex gap-2">
+                  <button onClick={() => setPriceHistoryFor({ id: device.id, name: `Station #${device.number}` })}
+                    className="p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors"
+                    title="Price History">
+                    <History className="w-4 h-4" />
+                  </button>
                   <button onClick={() => startEdit(device)}
                     className="p-2 rounded-lg bg-muted hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                     <Edit2 className="w-4 h-4" />
@@ -639,6 +657,14 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
           </div>
         )}
       </AnimatePresence>
+
+      <PriceHistoryModal
+        entityType="Device"
+        entityId={priceHistoryFor?.id ?? ""}
+        entityName={priceHistoryFor?.name ?? ""}
+        open={!!priceHistoryFor}
+        onClose={() => setPriceHistoryFor(null)}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { requirePermissionAsync, requireAdminAsync, requireAuthUser } from "@/li
 import { FT_SESSION_GAMING } from "@/lib/finance-constants";
 import { createAuditLog } from "@/lib/audit";
 import { getTenantWhereForRead, getJwtTenantId } from "@/lib/tenant-scope";
+import { FinanceTransactionSchema, DeleteFinanceSchema, validateOrThrow } from "@/lib/validations";
 
 export async function addFinancialTransaction(data: {
   type: "INCOME" | "EXPENSE";
@@ -15,6 +16,7 @@ export async function addFinancialTransaction(data: {
   description: string;
   reason: string;
 }) {
+  validateOrThrow(FinanceTransactionSchema, data);
   const user = await requirePermissionAsync("finance.manage");
 
   // Restrict STAFF users from adding EXPENSE without explicit permission
@@ -42,32 +44,34 @@ export async function addFinancialTransaction(data: {
     throw new Error("يجب فتح وردية الكاشير لربط المعاملة المالية بالوردية");
   }
 
-  const transaction = await prisma.financialTransaction.create({
-    data: {
-      type: data.type,
-      amount: toDecimal(data.amount),
-      description: data.description,
-      userId: user.id,
-      shiftId: shift.id,
-      tenantId,
-    },
-  });
+  let transaction;
+  await prisma.$transaction(async (tx) => {
+    transaction = await tx.financialTransaction.create({
+      data: {
+        type: data.type,
+        amount: toDecimal(data.amount),
+        description: data.description,
+        userId: user.id,
+        shiftId: shift.id,
+        tenantId,
+      },
+    });
 
-  // Create audit log for financial transaction
-  await createAuditLog({
-    action: data.type === "INCOME" ? "ADD_INCOME" : "ADD_EXPENSE",
-    entityType: "FinancialTransaction",
-    entityId: transaction.id,
-    reason: data.reason,
-    metadata: {
-      createdBy: user.id,
-      transactionId: transaction.id,
-      type: data.type,
-      amount: data.amount,
-      description: data.description,
-      shiftId: shift.id,
-      timestamp: new Date().toISOString()
-    }
+    await createAuditLog({
+      action: data.type === "INCOME" ? "ADD_INCOME" : "ADD_EXPENSE",
+      entityType: "FinancialTransaction",
+      entityId: transaction.id,
+      reason: data.reason,
+      metadata: {
+        createdBy: user.id,
+        transactionId: transaction.id,
+        type: data.type,
+        amount: data.amount,
+        description: data.description,
+        shiftId: shift.id,
+        timestamp: new Date().toISOString()
+      }
+    }, tx);
   });
 
   revalidatePath("/finance");
@@ -102,6 +106,7 @@ export async function getFinancialTransactions(startDate?: Date, endDate?: Date)
 }
 
 export async function deleteFinancialTransaction(id: string, reason: string = "Financial transaction deleted") {
+  validateOrThrow(DeleteFinanceSchema, { id, reason });
   const user = await requireAdminAsync();
 
   const row = await prisma.financialTransaction.findUnique({ where: { id } });
@@ -109,21 +114,22 @@ export async function deleteFinancialTransaction(id: string, reason: string = "F
     throw new Error("Cannot delete automated session settlement records");
   }
 
-  await prisma.financialTransaction.delete({ where: { id } });
-  
-  // Create audit log for financial transaction deletion
-  await createAuditLog({
-    action: "DELETE_FINANCIAL_TRANSACTION",
-    entityType: "FinancialTransaction",
-    entityId: id,
-    reason: reason,
-    metadata: {
-      deletedBy: user.id,
-      transactionId: id,
-      type: row?.type,
-      amount: row ? parseFloat(row.amount.toString()) : 0,
-      timestamp: new Date().toISOString()
-    }
+  await prisma.$transaction(async (tx) => {
+    await tx.financialTransaction.delete({ where: { id } });
+    
+    await createAuditLog({
+      action: "DELETE_FINANCIAL_TRANSACTION",
+      entityType: "FinancialTransaction",
+      entityId: id,
+      reason: reason,
+      metadata: {
+        deletedBy: user.id,
+        transactionId: id,
+        type: row?.type,
+        amount: row ? parseFloat(row.amount.toString()) : 0,
+        timestamp: new Date().toISOString()
+      }
+    }, tx);
   });
   
   revalidatePath("/finance");

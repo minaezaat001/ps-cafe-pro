@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getBillBreakdown } from '@/lib/billing';
+import { getAuthJwtPayload } from '@/lib/tenant-guard';
+import { getTenantWhereForRead } from '@/lib/tenant-scope';
 
 export async function GET(
   request: NextRequest,
@@ -9,6 +11,13 @@ export async function GET(
   const { id } = await params;
 
   try {
+    // Authenticate
+    const jwt = await getAuthJwtPayload();
+    if (!jwt) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const tenantFilter = await getTenantWhereForRead();
+
     // Try Session first
     const session = await prisma.session.findUnique({
       where: { id },
@@ -22,6 +31,11 @@ export async function GET(
     });
 
     if (session) {
+      // Tenant isolation
+      if (Object.keys(tenantFilter).length > 0 && session.tenantId !== tenantFilter.tenantId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       const filteredOrders = (session.orders as any[]).filter(o => !o.isDeleted);
       const breakdown = getBillBreakdown(session as any, session.device as any, session.endTime ? new Date(session.endTime).getTime() : Date.now());
       
@@ -46,7 +60,7 @@ export async function GET(
           deviceType: seg.deviceType,
           mode: seg.mode,
           cost: seg.cost,
-          minutes: seg.cost > 0 ? -1 : 0, // Fallback since getBillBreakdown doesn't return minutes directly, but we don't strictly need accurate minutes in the receipt if cost is right
+          minutes: seg.cost > 0 ? -1 : 0,
         })),
         fallbackGaming: breakdown.gaming,
         fallbackSingle: breakdown.single,
@@ -65,6 +79,11 @@ export async function GET(
     });
 
     if (sale) {
+      // Tenant isolation
+      if (Object.keys(tenantFilter).length > 0 && sale.tenantId !== tenantFilter.tenantId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       return NextResponse.json({
         type: 'SALE',
         id: sale.id,

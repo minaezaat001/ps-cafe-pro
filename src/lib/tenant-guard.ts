@@ -7,6 +7,7 @@ export type AuthJwtPayload = {
   username: string;
   role: string;
   tenantId?: string | null;
+  isImpersonating?: boolean;
 };
 
 export async function getAuthJwtPayload(): Promise<AuthJwtPayload | null> {
@@ -15,7 +16,18 @@ export async function getAuthJwtPayload(): Promise<AuthJwtPayload | null> {
     const auth = cookieStore.get("auth_user");
     if (!auth?.value) return null;
     const payload = await verifyAccessToken(auth.value);
-    return payload as AuthJwtPayload | null;
+    if (!payload) return null;
+
+    const result = payload as AuthJwtPayload;
+
+    // Impersonation: SUPER_ADMIN can override tenantId via impersonation cookie
+    const impersonateCookie = cookieStore.get("impersonated_tenant_id");
+    if (impersonateCookie?.value && result.role === "SUPER_ADMIN") {
+      result.tenantId = impersonateCookie.value;
+      result.isImpersonating = true;
+    }
+
+    return result;
   } catch {
     return null;
   }

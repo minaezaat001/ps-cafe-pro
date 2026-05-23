@@ -89,6 +89,7 @@ export function useDeviceCard({
   const [selectedOrderCategory, setSelectedOrderCategory] = useState<string>('All');
   const [lastClickedItemId, setLastClickedItemId] = useState<string | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState(0);
 
   const syncDashboard = async () => {
     if (onMutationComplete) await onMutationComplete();
@@ -176,7 +177,7 @@ export function useDeviceCard({
 
   const calculateTotal = () => {
     if (!session) return '0.00';
-    const breakdown = getBillBreakdown(session, device, now || undefined);
+    const breakdown = getBillBreakdown({ ...session, discountPercent }, device, now || undefined);
     return (breakdown.total).toFixed(2);
   };
 
@@ -187,8 +188,8 @@ export function useDeviceCard({
   };
 
   const getBillBreakdownLocal = () => {
-    if (!session) return { single: 0, multi: 0, items: 0, gaming: 0, segments: [] as any };
-    return getBillBreakdown(session, device, now || undefined);
+    if (!session) return { single: 0, multi: 0, items: 0, gaming: 0, subtotal: 0, discountPercent: 0, discount: 0, segments: [] as any };
+    return getBillBreakdown({ ...session, discountPercent }, device, now || undefined);
   };
 
   useEffect(() => {
@@ -272,7 +273,10 @@ export function useDeviceCard({
       console.log(`[UI] Ending session for device ${device.number}...`);
       setShowCheckoutModal(false);
       const sessionId = session.id;
-      await endSession(sessionId);
+      const discountReason = discountPercent > 0
+        ? isRTL ? `خصم ${discountPercent}%` : `${discountPercent}% discount`
+        : undefined;
+      await endSession(sessionId, "Session ended", discountPercent, discountReason);
       if (printSettings.enabled && printChecked) {
         try {
           await printReceiptSilently(sessionId, printSettings);
@@ -480,5 +484,7 @@ export function useDeviceCard({
     allDevices,
     isPrivate,
     playAlertSound,
+    discountPercent,
+    setDiscountPercent,
   };
 }

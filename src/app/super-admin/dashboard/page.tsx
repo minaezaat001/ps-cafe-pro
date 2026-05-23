@@ -1,16 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { Users, CreditCard, Clock, CheckCircle2, XCircle, Search, RefreshCw, Crown } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Users, CreditCard, Clock, CheckCircle2, XCircle, Search, RefreshCw, Crown, Key, Trash2, HeartPulse, Activity, AlertTriangle, Megaphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { getAllTenants, toggleTenantSubscription, updateTenantTrial, deleteTenant } from '../../actions/super-admin.actions';
-import { Trash2 } from 'lucide-react';
+import { getAllTenants, toggleTenantSubscription, updateTenantTrial, deleteTenant, impersonateTenant, getGlobalSystemStats, type GlobalSystemStats } from '../../actions/super-admin.actions';
+import { createAnnouncement } from '../../actions/announcement.actions';
 
 export default function SuperAdminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [systemStats, setSystemStats] = useState<GlobalSystemStats | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const [broadcastMsg, setBroadcastMsg] = useState('');
+  const [broadcastType, setBroadcastType] = useState('INFO');
+  const [sending, setSending] = useState(false);
 
   const fetchTenants = async () => {
     setIsLoading(true);
@@ -48,6 +55,30 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const handleImpersonate = async (id: string, name: string) => {
+    try {
+      await impersonateTenant(id);
+      // redirect happens server-side
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastMsg.trim()) return;
+    setSending(true);
+    try {
+      await createAnnouncement(broadcastMsg, broadcastType);
+      toast.success('Announcement sent to all users');
+      setBroadcastMsg('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleDeleteTenant = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete the account for "${name}"? This action is permanent and will delete ALL data for this cafe.`)) return;
     
@@ -59,6 +90,26 @@ export default function SuperAdminDashboard() {
       toast.error(err.message);
     }
   };
+
+  const fetchSystemStats = useCallback(async () => {
+    try {
+      const data = await getGlobalSystemStats();
+      setSystemStats(data);
+    } catch {
+      // Silently fail on health poll errors
+    } finally {
+      setHealthLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSystemStats();
+    const interval = setInterval(fetchSystemStats, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchSystemStats]);
+
+  const formatCurrency = (value: number) =>
+    value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const filteredTenants = tenants.filter(t => 
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -119,6 +170,195 @@ export default function SuperAdminDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* ═══ System Health ═══ */}
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-xl bg-emerald-500/10">
+            <HeartPulse className="w-5 h-5 text-emerald-400" />
+          </div>
+          <h2 className="text-xl font-black tracking-tight text-foreground">
+            System <span className="text-emerald-400">Health</span>
+          </h2>
+          {healthLoading && <RefreshCw className="w-4 h-4 text-muted-foreground animate-spin" />}
+        </div>
+
+        {/* Health Metric Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+          {[
+            {
+              label: 'Active Sessions',
+              value: systemStats?.activeSessions ?? '—',
+              icon: Activity,
+              color: 'blue',
+            },
+            {
+              label: "Today's Revenue",
+              value: systemStats ? `${formatCurrency(systemStats.todayRevenue)}` : '—',
+              icon: CreditCard,
+              color: 'emerald',
+            },
+            {
+              label: 'Open Shifts',
+              value: systemStats?.openShiftCount ?? '—',
+              icon: Clock,
+              color: 'violet',
+            },
+            {
+              label: 'Overdue Shifts',
+              value: systemStats?.overdueShifts.length ?? '—',
+              icon: AlertTriangle,
+              color: systemStats && systemStats.overdueShifts.length > 0 ? 'rose' : 'amber',
+              pulse: systemStats && systemStats.overdueShifts.length > 0,
+            },
+            {
+              label: 'Tenant Health',
+              value: systemStats ? `${systemStats.subscribedTenants}/${systemStats.totalTenants}` : '—',
+              sub: systemStats ? `${systemStats.staleTenants} stale` : '',
+              icon: CheckCircle2,
+              color:
+                systemStats && systemStats.staleTenants > 0
+                  ? 'rose'
+                  : systemStats && systemStats.subscribedTenants === systemStats.totalTenants
+                  ? 'emerald'
+                  : 'amber',
+            },
+          ].map((stat, i) => (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              key={stat.label}
+              className={`glass-card p-5 rounded-2xl border bg-card/50 ${stat.pulse ? 'animate-pulse-glow' : ''}`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate">
+                    {stat.label}
+                  </p>
+                  <h3 className="text-2xl font-black mt-1 text-foreground tabular-nums">{stat.value}</h3>
+                  {stat.sub && (
+                    <p className="text-[11px] font-bold text-muted-foreground/70 mt-0.5">{stat.sub}</p>
+                  )}
+                </div>
+                <div className={`p-2.5 rounded-xl shrink-0 bg-${stat.color}-500/10 text-${stat.color}-500`}>
+                  <stat.icon className="w-5 h-5" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Critical Alerts Table */}
+        {systemStats && systemStats.overdueShifts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl border border-rose-500/20 bg-card/50 overflow-hidden"
+          >
+            <div className="p-5 border-b border-rose-500/10 flex items-center gap-3">
+              <div className="p-1.5 rounded-lg bg-rose-500/15">
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-rose-300">
+                  Critical Alert{systemStats.overdueShifts.length > 1 ? 's' : ''}
+                </h3>
+                <p className="text-[11px] font-semibold text-muted-foreground">
+                  {systemStats.overdueShifts.length} shift{systemStats.overdueShifts.length > 1 ? 's' : ''} open for over 24 hours — staff forgot to close
+                </p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-rose-500/5">
+                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tenant</th>
+                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Opened By</th>
+                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Opened At</th>
+                    <th className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Duration</th>
+                    <th className="px-5 py-3 text-right" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rose-500/5">
+                  {systemStats.overdueShifts.map((shift) => (
+                    <tr key={shift.shiftId} className="hover:bg-rose-500/5 transition-colors">
+                      <td className="px-5 py-4">
+                        <span className="font-bold text-sm text-foreground">{shift.tenantName}</span>
+                      </td>
+                      <td className="px-5 py-4 text-sm font-semibold text-muted-foreground">{shift.openedBy}</td>
+                      <td className="px-5 py-4 text-sm text-muted-foreground">
+                        {format(new Date(shift.openedAt), 'MMM d, HH:mm')}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 text-xs font-bold">
+                          {shift.hoursOpen}h
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <button
+                          onClick={() => handleImpersonate(shift.tenantId, shift.tenantName)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition-all text-xs font-bold"
+                        >
+                          <Key className="w-3 h-3" />
+                          Login As
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* ═══ Broadcast ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card rounded-2xl border bg-card/50 overflow-hidden"
+      >
+        <div className="p-5 border-b border-border flex items-center gap-3">
+          <div className="p-1.5 rounded-lg bg-blue-500/10">
+            <Megaphone className="w-4 h-4 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="font-black text-sm text-foreground">Broadcast Announcement</h3>
+            <p className="text-[11px] font-semibold text-muted-foreground">
+              Send a system-wide notification to all users across all tenants
+            </p>
+          </div>
+        </div>
+        <form onSubmit={handleBroadcast} className="p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={broadcastMsg}
+              onChange={(e) => setBroadcastMsg(e.target.value)}
+              placeholder="Type your announcement message..."
+              maxLength={500}
+              className="flex-1 px-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium placeholder:text-muted-foreground/40"
+            />
+            <select
+              value={broadcastType}
+              onChange={(e) => setBroadcastType(e.target.value)}
+              className="px-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-bold text-foreground appearance-none cursor-pointer"
+            >
+              <option value="INFO">ℹ INFO</option>
+              <option value="WARNING">⚠ WARNING</option>
+              <option value="UPDATE">✦ UPDATE</option>
+            </select>
+            <button
+              type="submit"
+              disabled={sending || !broadcastMsg.trim()}
+              className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-600 transition-all disabled:opacity-40 shrink-0"
+            >
+              {sending ? 'Sending...' : 'Broadcast'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
 
       {/* Search & Table */}
       <div className="glass-card rounded-2xl border bg-card/50 overflow-hidden">
@@ -191,6 +431,13 @@ export default function SuperAdminDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right space-x-2">
+                      <button
+                        onClick={() => handleImpersonate(tenant.id, tenant.name)}
+                        className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
+                        title={`Login as ${tenant.name}`}
+                      >
+                        <Key className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleExtendTrial(tenant.id)}
                         className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary-hover text-xs font-bold transition-all"

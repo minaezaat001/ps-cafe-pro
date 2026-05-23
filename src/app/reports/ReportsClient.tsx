@@ -80,6 +80,11 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
     };
   }, [data, selectedShiftId]);
 
+  const combinedInvoices = useMemo(() =>
+    [...filteredData.sessions, ...filteredData.sales, ...filteredData.transactions.filter(isManualFinanceTx)]
+      .sort((a, b) => new Date(b.endTime || b.createdAt).getTime() - new Date(a.endTime || a.createdAt).getTime()),
+    [filteredData]
+  );
 
   // ── xlsx loaded on-demand only when user clicks Export ──
   const exportToExcel = useCallback(async () => {
@@ -314,9 +319,16 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {[...filteredData.sessions, ...filteredData.sales, ...filteredData.transactions.filter(isManualFinanceTx)]
-                .sort((a, b) => new Date(b.endTime || b.createdAt).getTime() - new Date(a.endTime || a.createdAt).getTime())
-                .map((item, i) => {
+              {combinedInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                      <FileText className="w-12 h-12 opacity-20 mb-3" />
+                      <p className="font-bold text-sm">{isRTL ? 'لا توجد فواتير في هذه الفترة' : 'No invoices for this period'}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : combinedInvoices.map((item, i) => {
                   const isSession = !!item.startTime;
                   const isTransaction = item.type === 'INCOME' || item.type === 'EXPENSE';
                   const date = new Date(item.endTime || item.createdAt);

@@ -9,6 +9,10 @@ import { Menu, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrialStatus } from "@/components/TrialStatus";
 import { PendingOrdersWidget } from "@/components/PendingOrdersWidget";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+import KeyboardShortcutsHUD from "@/components/KeyboardShortcutsHUD";
+import GlobalSearch from "@/components/GlobalSearch";
 
 const MobileHeader = ({ onOpen, hidden = false }: { onOpen: () => void; hidden?: boolean }) => {
   if (hidden) return null;
@@ -53,7 +57,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       
       <div className={cn("flex-1 flex flex-col min-w-0 h-screen overflow-hidden", isFullWidth ? "w-full" : "")}>
         <MobileHeader onOpen={() => setIsSidebarOpen(true)} hidden={isFullWidth} />
+        {!isFullWidth && !isPrint && (
+          <div className="hidden lg:flex items-center justify-end px-6 pt-3 pb-0 gap-2">
+            <GlobalSearch />
+          </div>
+        )}
         
+        {!isFullWidth && <AnnouncementBanner />}
+        {!isFullWidth && <ImpersonationBanner />}
         <main className={cn("flex-1 relative overflow-y-auto scrollbar-hide", !isFullWidth ? "bg-transparent" : "bg-background")}>
           {!isFullWidth && (
             <>
@@ -71,6 +82,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      <KeyboardShortcutsHUD />
       {!isFullWidth && !isSuperAdmin && <PendingOrdersWidget />}
       <Toaster position="top-right" theme={theme === 'dark' ? 'dark' : 'light'} richColors closeButton />
     </div>

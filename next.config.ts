@@ -11,6 +11,22 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'date-fns'],
   },
+
+  // ── Redirects ────────────────────────────────────────────
+  async redirects() {
+    return [
+      {
+        source: '/cafetria',
+        destination: '/cafeteria',
+        permanent: true,
+      },
+      {
+        source: '/cafetria/:path*',
+        destination: '/cafeteria/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

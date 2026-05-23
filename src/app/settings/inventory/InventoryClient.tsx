@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Package, Plus, Search, Trash2, Edit, X } from 'lucide-react';
+import { Package, Plus, Search, Trash2, Edit, X, History } from 'lucide-react';
 import { addInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/app/actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLang } from '@/lib/LanguageContext';
 import { useKeyPress } from '@/lib/useKeyPress';
 import JustificationModal from '@/components/JustificationModal';
+import PriceHistoryModal from '@/components/PriceHistoryModal';
 
 function cn(...inputs: any[]) { return inputs.filter(Boolean).join(' '); }
 
@@ -19,6 +20,7 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
   const { t, isRTL } = useLang();
   const [showModal, setShowModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, itemId: string, itemName: string}>({show: false, itemId: '', itemName: ''});
+  const [priceHistoryFor, setPriceHistoryFor] = useState<{ id: string; name: string } | null>(null);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,7 +120,16 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filteredItems.map((item) => (
+            {filteredItems.length === 0 ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Package className="w-12 h-12 opacity-20 mb-3" />
+                    <p className="font-bold text-sm">{isRTL ? 'لا توجد عناصر في المخزون' : 'No items in inventory'}</p>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredItems.map((item) => (
               <tr key={item.id} className="hover:bg-muted/50 transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
@@ -140,6 +151,11 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
                 </td>
                 <td className="px-6 py-5">
                   <div className={cn('flex gap-2', isRTL ? 'justify-start' : 'justify-end')}>
+                    <button onClick={() => setPriceHistoryFor({ id: item.id, name: item.name })}
+                      className="p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors"
+                      title="Price History">
+                      <History className="w-4 h-4" />
+                    </button>
                     <button onClick={() => handleOpenEdit(item)}
                       className="p-2 rounded-lg bg-muted hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                       <Edit className="w-4 h-4" />
@@ -223,6 +239,14 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
           : `You are about to delete "${deleteModal.itemName}". Please provide a reason.`}
         isRTL={isRTL}
         isLoading={isPending}
+      />
+
+      <PriceHistoryModal
+        entityType="InventoryItem"
+        entityId={priceHistoryFor?.id ?? ""}
+        entityName={priceHistoryFor?.name ?? ""}
+        open={!!priceHistoryFor}
+        onClose={() => setPriceHistoryFor(null)}
       />
     </div>
   );

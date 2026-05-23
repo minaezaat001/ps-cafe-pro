@@ -6,10 +6,13 @@ import { calculateSessionTimeCost } from "@/lib/billing";
 import { decToNumber, toDecimal } from "@/lib/decimals";
 import { requirePermissionAsync, requireAuthUser } from "@/lib/action-guards";
 import { getJwtTenantId, getTenantWhereForRead, requireWritableTenantContext } from "@/lib/tenant-scope";
+import { ShiftOpenSchema, ShiftCloseSchema, ClearOldDataSchema, validateOrThrow } from "@/lib/validations";
 import { computeShiftSummary } from "@/lib/shift-summary";
 import { FT_INCOME } from "@/lib/finance-constants";
+import { createAuditLog } from "@/lib/audit";
 
 export async function openShift(openingFloat: number) {
+  validateOrThrow(ShiftOpenSchema, { openingFloat });
   const user = await requirePermissionAsync("shift.manage");
   await requireWritableTenantContext();
 
@@ -35,6 +38,15 @@ export async function openShift(openingFloat: number) {
         ...(tenantId ? { tenantId } : {}),
       },
     });
+
+    // Fire-and-forget audit log (not inside the create transaction to avoid holding it open)
+    createAuditLog({
+      action: "OPEN_SHIFT",
+      entityType: "Shift",
+      entityId: shift.id,
+      reason: `Shift opened by ${user.username}`,
+      metadata: { openedBy: user.id, shiftId: shift.id, openingFloat, tenantId, timestamp: new Date().toISOString() },
+    }).catch(() => {});
 
     revalidatePath("/shift");
     return {
@@ -112,6 +124,7 @@ export async function closeShift(
   | { success: false; message: string }
 > {
   try {
+    validateOrThrow(ShiftCloseSchema, { shiftId, actualCash, notes });
     const user = await requirePermissionAsync("shift.manage");
     await requireWritableTenantContext();
 
@@ -136,6 +149,14 @@ export async function closeShift(
         notes: notes ?? null,
       },
     });
+
+      await createAuditLog({
+        action: "CLOSE_SHIFT",
+        entityType: "Shift",
+        entityId: shiftId,
+        reason: `Shift closed by ${user.username}`,
+        metadata: { closedBy: user.id, shiftId, actualCash, expectedCash: summary.expectedCash, variance, notes: notes ?? null, timestamp: new Date().toISOString() },
+      }, tx);
 
       return { variance, expectedCash: summary.expectedCash };
     });
@@ -392,12 +413,13 @@ export async function getReportData(startDate: Date, endDate: Date) {
     throw new Error("Forbidden");
   }
 
+  const tenantFilter = await getTenantWhereForRead();
   const endOfDay = new Date(endDate);
   endOfDay.setHours(23, 59, 59, 999);
 
   const [sessions, sales, transactions, shifts] = await Promise.all([
     prisma.session.findMany({
-      where: { endTime: { gte: startDate, lte: endOfDay }, isActive: false },
+      where: { endTime: { gte: startDate, lte: endOfDay }, isActive: false, ...tenantFilter },
       include: {
         device: true,
         endedByUser: true,
@@ -408,18 +430,19 @@ export async function getReportData(startDate: Date, endDate: Date) {
       },
     }),
     prisma.sale.findMany({
-      where: { createdAt: { gte: startDate, lte: endOfDay } },
+      where: { createdAt: { gte: startDate, lte: endOfDay }, ...tenantFilter },
       include: {
         user: true,
         items: { include: { inventoryItem: true } },
       },
     }),
     prisma.financialTransaction.findMany({
-      where: { createdAt: { gte: startDate, lte: endOfDay } },
+      where: { createdAt: { gte: startDate, lte: endOfDay }, ...tenantFilter },
       include: { user: true },
     }),
     prisma.shift.findMany({
       where: {
+        ...tenantFilter,
         OR: [
           { openedAt: { gte: startDate, lte: endOfDay } },
           { closedAt: { gte: startDate, lte: endOfDay } }
@@ -462,6 +485,7 @@ export async function getAdvancedPerformanceMetrics() {
       return null;
     }
 
+    const tenantFilter = await getTenantWhereForRead();
     const now = new Date();
     const startOfToday = new Date(new Date(now).setHours(0, 0, 0, 0));
     const endOfToday = new Date(new Date(now).setHours(23, 59, 59, 999));
@@ -488,40 +512,40 @@ export async function getAdvancedPerformanceMetrics() {
       lastMonthTransactions,
     ] = await Promise.all([
       prisma.session.findMany({
-        where: { endTime: { gte: startOfToday, lte: endOfToday }, isActive: false },
+        where: { endTime: { gte: startOfToday, lte: endOfToday }, isActive: false, ...tenantFilter },
         include: { orders: true, segments: true },
       }),
-      prisma.sale.findMany({ where: { createdAt: { gte: startOfToday, lte: endOfToday } } }),
+      prisma.sale.findMany({ where: { createdAt: { gte: startOfToday, lte: endOfToday }, ...tenantFilter } }),
       prisma.financialTransaction.findMany({
-        where: { createdAt: { gte: startOfToday, lte: endOfToday } },
+        where: { createdAt: { gte: startOfToday, lte: endOfToday }, ...tenantFilter },
       }),
       prisma.session.findMany({
-        where: { endTime: { gte: startOfYesterday, lte: endOfYesterday }, isActive: false },
+        where: { endTime: { gte: startOfYesterday, lte: endOfYesterday }, isActive: false, ...tenantFilter },
         include: { orders: true, segments: true },
       }),
       prisma.sale.findMany({
-        where: { createdAt: { gte: startOfYesterday, lte: endOfYesterday } },
+        where: { createdAt: { gte: startOfYesterday, lte: endOfYesterday }, ...tenantFilter },
       }),
       prisma.financialTransaction.findMany({
-        where: { createdAt: { gte: startOfYesterday, lte: endOfYesterday } },
+        where: { createdAt: { gte: startOfYesterday, lte: endOfYesterday }, ...tenantFilter },
       }),
       prisma.session.findMany({
-        where: { endTime: { gte: startOfThisMonth, lte: endOfToday }, isActive: false },
+        where: { endTime: { gte: startOfThisMonth, lte: endOfToday }, isActive: false, ...tenantFilter },
         include: { orders: true, segments: true },
       }),
-      prisma.sale.findMany({ where: { createdAt: { gte: startOfThisMonth, lte: endOfToday } } }),
+      prisma.sale.findMany({ where: { createdAt: { gte: startOfThisMonth, lte: endOfToday }, ...tenantFilter } }),
       prisma.financialTransaction.findMany({
-        where: { createdAt: { gte: startOfThisMonth, lte: endOfToday } },
+        where: { createdAt: { gte: startOfThisMonth, lte: endOfToday }, ...tenantFilter },
       }),
       prisma.session.findMany({
-        where: { endTime: { gte: startOfLastMonth, lte: endOfLastMonthSameDay }, isActive: false },
+        where: { endTime: { gte: startOfLastMonth, lte: endOfLastMonthSameDay }, isActive: false, ...tenantFilter },
         include: { orders: true, segments: true },
       }),
       prisma.sale.findMany({
-        where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonthSameDay } },
+        where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonthSameDay }, ...tenantFilter },
       }),
       prisma.financialTransaction.findMany({
-        where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonthSameDay } },
+        where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonthSameDay }, ...tenantFilter },
       }),
     ]);
 

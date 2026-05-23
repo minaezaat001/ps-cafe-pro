@@ -12,6 +12,7 @@ export type AuthUser = {
   role: string;
   permissions: string[];
   tenantId?: string | null;
+  isImpersonating?: boolean;
 };
 
 export async function login(username: string, password: string) {
@@ -117,12 +118,23 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       // Ignore
     }
 
+    let tenantId = dbUser.tenantId ?? null;
+    let isImpersonating = false;
+
+    // Impersonation: SUPER_ADMIN can override tenantId via impersonation cookie
+    const impersonateCookie = cookieStore.get("impersonated_tenant_id");
+    if (impersonateCookie?.value && dbUser.role === "SUPER_ADMIN") {
+      tenantId = impersonateCookie.value;
+      isImpersonating = true;
+    }
+
     return {
       id: dbUser.id,
       username: dbUser.username,
       role: dbUser.role,
       permissions,
-      tenantId: dbUser.tenantId ?? null,
+      tenantId,
+      isImpersonating,
     };
   } catch {
     return null;

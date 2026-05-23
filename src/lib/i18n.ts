@@ -223,6 +223,34 @@ export const translations = {
     'settings.processing': 'PROCESSING...',
     'settings.success': 'Operation completed successfully',
 
+    // Discount
+    'device.discount': 'Discount',
+    'device.saveAmount': 'Save {amount} EGP',
+
+    // Global Search
+    'search.placeholder': 'Search pages, devices, users...',
+    'search.noResults': 'No results found',
+    'search.triggerLabel': 'Search...',
+
+    // Keyboard Shortcuts
+    'shortcuts.title': 'Keyboard Shortcuts',
+    'shortcuts.toggleHelp': 'Toggle this help menu',
+    'shortcuts.closeModal': 'Close modal / Cancel',
+    'shortcuts.globalSearch': 'Global search',
+    'shortcuts.focusDashboard': 'Focus dashboard',
+    'shortcuts.newSession': 'New device session',
+    'shortcuts.confirm': 'Confirm / Submit form',
+
+    // Impersonation
+    'impersonation.banner': 'Impersonating',
+    'impersonation.description': 'You are viewing this cafe as a super admin',
+    'impersonation.exit': 'Exit Impersonation',
+
+    // Price History
+    'priceHistory.title': 'Price History',
+    'priceHistory.loading': 'Loading...',
+    'priceHistory.noChanges': 'No price changes recorded yet',
+
     // Common
     'common.le': 'EGP',
     'common.leHr': 'EGP/HR',
@@ -453,6 +481,34 @@ export const translations = {
     'settings.confirm': 'تأكيد الإجراء',
     'settings.processing': 'جاري التنفيذ...',
     'settings.success': 'تمت العملية بنجاح',
+
+    // Discount
+    'device.discount': 'خصم',
+    'device.saveAmount': 'توفير {amount} ج.م.',
+
+    // Global Search
+    'search.placeholder': 'ابحث في الصفحات والأجهزة والمستخدمين...',
+    'search.noResults': 'لا توجد نتائج',
+    'search.triggerLabel': 'بحث...',
+
+    // Keyboard Shortcuts
+    'shortcuts.title': 'اختصارات لوحة المفاتيح',
+    'shortcuts.toggleHelp': 'فتح/إغلاق قائمة المساعدة',
+    'shortcuts.closeModal': 'إغلاق النافذة / إلغاء',
+    'shortcuts.globalSearch': 'البحث الشامل',
+    'shortcuts.focusDashboard': 'التركيز على لوحة التحكم',
+    'shortcuts.newSession': 'جلسة جهاز جديدة',
+    'shortcuts.confirm': 'تأكيد / إرسال',
+
+    // Impersonation
+    'impersonation.banner': 'تسجيل الدخول كـ',
+    'impersonation.description': 'أنت تشاهد هذا الكافيه كمدير عام',
+    'impersonation.exit': 'خروج من وضع الاختبار',
+
+    // Price History
+    'priceHistory.title': 'سجل الأسعار',
+    'priceHistory.loading': 'جاري التحميل...',
+    'priceHistory.noChanges': 'لا توجد تغييرات في الأسعار بعد',
 
     // Common
     'common.le': 'ج.م.',

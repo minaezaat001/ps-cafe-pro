@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { useLang } from '@/lib/LanguageContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import LowStockBadge from '@/components/LowStockBadge';
 
 function cn(...inputs: any[]) {
   return twMerge(clsx(inputs));
@@ -69,16 +70,19 @@ export const Sidebar = ({
   const handleLogout = async () => {
     if (!confirm(t('nav.signOutConfirm'))) return;
 
-    try {
-      const activeShift = await getActiveShift();
-      if (activeShift) {
-        toast.error(isRTL ? "يجب إغلاق الوردية والكاشير قبل تسجيل الخروج!" : "You must close your shift before logging out!");
-        router.push("/shift?pending=logout");
-        if (onClose) onClose(); // Close mobile menu if open
-        return;
+    // Super Admin doesn't have shifts — skip the check
+    if (user?.role !== 'SUPER_ADMIN') {
+      try {
+        const activeShift = await getActiveShift();
+        if (activeShift) {
+          toast.error(isRTL ? "يجب إغلاق الوردية والكاشير قبل تسجيل الخروج!" : "You must close your shift before logging out!");
+          router.push("/shift?pending=logout");
+          if (onClose) onClose(); // Close mobile menu if open
+          return;
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
     }
 
     await logout();
@@ -86,7 +90,7 @@ export const Sidebar = ({
 
   const menuItems = [
     { icon: LayoutDashboard, labelKey: 'nav.dashboard' as const, href: '/', colorActive: 'text-blue-400' },
-    { icon: Coffee,          labelKey: 'nav.cafeteria' as const, href: '/cafetria', colorActive: 'text-amber-400' },
+    { icon: Coffee,          labelKey: 'nav.cafeteria' as const, href: '/cafeteria', colorActive: 'text-amber-400' },
     { icon: ShieldCheck,     labelKey: 'nav.shift'     as const, href: '/shift',   colorActive: 'text-teal-400' },
     { icon: Wallet,          labelKey: 'nav.finance'   as const, href: '/finance',   colorActive: 'text-emerald-400' },
     { icon: BarChart3,       labelKey: 'nav.reports'   as const, href: '/reports', colorActive: 'text-blue-400' },
@@ -181,6 +185,7 @@ export const Sidebar = ({
               )}
               <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive && item.colorActive)} />
               <span className={cn('font-semibold text-base', isRTL && 'text-right')}>{t(item.labelKey)}</span>
+              {item.labelKey === 'nav.cafeteria' && <LowStockBadge />}
               {isActive && (
                 <ChevronRight className={cn(
                   'w-3 h-3 ms-auto text-blue-400/60',

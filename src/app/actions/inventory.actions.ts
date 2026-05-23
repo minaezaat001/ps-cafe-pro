@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requirePermissionAsync, requireAuthUser } from "@/lib/action-guards";
 import { toDecimal, decToNumber } from "@/lib/decimals";
 import { createAuditLog } from "@/lib/audit";
+import { InventoryItemSchema, InventoryUpdateSchema, OrderItemSchema, CartSchema, DeleteFinanceSchema, validateOrThrow } from "@/lib/validations";
 
 export async function getInventory() {
   const user = await requireAuthUser();
@@ -46,43 +47,49 @@ export async function getInventoryForCafeteria() {
 }
 
 export async function addInventoryItem(data: { name: string; category: string; price: number; stock: number }) {
+  validateOrThrow(InventoryItemSchema, data);
   await requirePermissionAsync("inventory.manage");
   const user = await requireAuthUser();
 
   const { getJwtTenantId } = await import("@/lib/tenant-scope");
   const tenantId = (await getJwtTenantId()) || null;
 
-  const inventoryItem = await prisma.inventoryItem.create({
-    data: {
-      name: data.name,
-      category: data.category,
-      price: toDecimal(data.price),
-      stock: data.stock,
-      tenantId,
-    },
-  });
-  
-  // Create audit log for inventory item addition
-  await createAuditLog({
-    action: "ADD_INVENTORY_ITEM",
-    entityType: "InventoryItem",
-    entityId: inventoryItem.id,
-    reason: `Inventory item added: ${data.name}`,
-    metadata: {
-      addedBy: user.id,
-      name: data.name,
-      category: data.category,
-      price: data.price,
-      stock: data.stock,
-      timestamp: new Date().toISOString()
-    }
+  let inventoryItem;
+  await prisma.$transaction(async (tx) => {
+    inventoryItem = await tx.inventoryItem.create({
+      data: {
+        name: data.name,
+        category: data.category,
+        price: toDecimal(data.price),
+        stock: data.stock,
+        tenantId,
+      },
+    });
+    
+    await createAuditLog({
+      action: "ADD_INVENTORY_ITEM",
+      entityType: "InventoryItem",
+      entityId: inventoryItem.id,
+      reason: `Inventory item added: ${data.name}`,
+      metadata: {
+        addedBy: user.id,
+        name: data.name,
+        category: data.category,
+        price: data.price,
+        stock: data.stock,
+        timestamp: new Date().toISOString()
+      }
+    }, tx);
   });
   
   revalidatePath("/inventory");
-  revalidatePath("/cafetria");
+  revalidatePath("/cafeteria");
 }
 
 export async function updateInventoryItem(id: string, data: { name?: string; category?: string; price?: number; stock?: number }, reason: string = "Inventory item updated") {
+  if (data.name !== undefined || data.category !== undefined || data.price !== undefined || data.stock !== undefined) {
+    validateOrThrow(InventoryUpdateSchema, data);
+  }
   await requirePermissionAsync("inventory.manage");
   const user = await requireAuthUser();
 
@@ -90,36 +97,37 @@ export async function updateInventoryItem(id: string, data: { name?: string; cat
   const currentItem = await prisma.inventoryItem.findUnique({ where: { id } });
   if (!currentItem) throw new Error("Item not found");
 
-  const payload: Record<string, unknown> = { ...data };
-  if (typeof data.price === "number") payload.price = toDecimal(data.price);
+  await prisma.$transaction(async (tx) => {
+    const payload: Record<string, unknown> = { ...data };
+    if (typeof data.price === "number") payload.price = toDecimal(data.price);
 
-  await prisma.inventoryItem.update({
-    where: { id },
-    data: payload as { name?: string; category?: string; price?: ReturnType<typeof toDecimal>; stock?: number },
-  });
-  
-  // Create audit log for inventory update
-  await createAuditLog({
-    action: "UPDATE_INVENTORY_ITEM",
-    entityType: "InventoryItem",
-    entityId: id,
-    reason: reason,
-    metadata: {
-      updatedBy: user.id,
-      itemId: id,
-      previousData: {
-        name: currentItem.name,
-        category: currentItem.category,
-        price: decToNumber(currentItem.price),
-        stock: currentItem.stock
-      },
-      newData: data,
-      timestamp: new Date().toISOString()
-    }
+    await tx.inventoryItem.update({
+      where: { id },
+      data: payload as any,
+    });
+    
+    await createAuditLog({
+      action: "UPDATE_INVENTORY_ITEM",
+      entityType: "InventoryItem",
+      entityId: id,
+      reason: reason,
+      metadata: {
+        updatedBy: user.id,
+        itemId: id,
+        previousData: {
+          name: currentItem.name,
+          category: currentItem.category,
+          price: decToNumber(currentItem.price),
+          stock: currentItem.stock
+        },
+        newData: data,
+        timestamp: new Date().toISOString()
+      }
+    }, tx);
   });
   
   revalidatePath("/inventory");
-  revalidatePath("/cafetria");
+  revalidatePath("/cafeteria");
 }
 
 export async function deleteInventoryItem(id: string, reason: string = "Inventory item deleted") {
@@ -130,31 +138,33 @@ export async function deleteInventoryItem(id: string, reason: string = "Inventor
   const currentItem = await prisma.inventoryItem.findUnique({ where: { id } });
   if (!currentItem) throw new Error("Item not found");
 
-  await prisma.inventoryItem.update({
-    where: { id },
-    data: { isActive: false },
-  });
-  
-  // Create audit log for inventory deletion
-  await createAuditLog({
-    action: "DELETE_INVENTORY_ITEM",
-    entityType: "InventoryItem",
-    entityId: id,
-    reason: reason,
-    metadata: {
-      deletedBy: user.id,
-      itemId: id,
-      itemName: currentItem.name,
-      category: currentItem.category,
-      timestamp: new Date().toISOString()
-    }
+  await prisma.$transaction(async (tx) => {
+    await tx.inventoryItem.update({
+      where: { id },
+      data: { isActive: false },
+    });
+    
+    await createAuditLog({
+      action: "DELETE_INVENTORY_ITEM",
+      entityType: "InventoryItem",
+      entityId: id,
+      reason: reason,
+      metadata: {
+        deletedBy: user.id,
+        itemId: id,
+        itemName: currentItem.name,
+        category: currentItem.category,
+        timestamp: new Date().toISOString()
+      }
+    }, tx);
   });
   
   revalidatePath("/inventory");
-  revalidatePath("/cafetria");
+  revalidatePath("/cafeteria");
 }
 
 export async function processQuickSale(items: { itemId: string; quantity: number }[], reason: string = "Quick sale processed") {
+  validateOrThrow(CartSchema, items);
   const userBuffer = await requirePermissionAsync("cafeteria.manage");
   const user = await requireAuthUser();
 
@@ -231,7 +241,7 @@ export async function processQuickSale(items: { itemId: string; quantity: number
       },
     });
     
-    // Create audit log for quick sale
+    // Create audit log for quick sale (inside transaction)
     await createAuditLog({
       action: "QUICK_SALE",
       entityType: "Sale",
@@ -245,18 +255,19 @@ export async function processQuickSale(items: { itemId: string; quantity: number
         shiftId: activeShift.id,
         timestamp: new Date().toISOString()
       }
-    });
+    }, tx);
   }, {
     // Serializable isolation ensures concurrent transactions don't cause stock issues
   });
 
   revalidatePath("/inventory");
-  revalidatePath("/cafetria");
+  revalidatePath("/cafeteria");
   revalidatePath("/reports");
   revalidatePath("/", "layout");
 }
 
 export async function voidSale(saleId: string, reason: string = "Sale voided") {
+  validateOrThrow(DeleteFinanceSchema, { id: saleId, reason });
   const user = await requirePermissionAsync("cafeteria.manage");
   const currentUser = await requireAuthUser();
 
@@ -297,7 +308,7 @@ export async function voidSale(saleId: string, reason: string = "Sale voided") {
       }
     });
     
-    // Create audit log for voiding sale
+    // Create audit log for voiding sale (inside transaction)
     await createAuditLog({
       action: "VOID_SALE",
       entityType: "Sale",
@@ -310,12 +321,27 @@ export async function voidSale(saleId: string, reason: string = "Sale voided") {
         totalAmount: decToNumber(sale.totalAmount),
         timestamp: new Date().toISOString()
       }
-    });
+    }, tx);
   });
 
   revalidatePath("/reports");
   revalidatePath("/finance");
   revalidatePath("/inventory");
-  revalidatePath("/cafetria");
+  revalidatePath("/cafeteria");
   revalidatePath("/", "layout");
+}
+
+export async function getLowStockItems(threshold: number = 5) {
+  const { getTenantWhereForRead } = await import("@/lib/tenant-scope");
+  const tenantFilter = await getTenantWhereForRead();
+  const items = await prisma.inventoryItem.findMany({
+    where: {
+      stock: { lte: threshold },
+      isActive: true,
+      ...(Object.keys(tenantFilter).length > 0 ? tenantFilter : {}),
+    },
+    select: { id: true, name: true, stock: true, category: true },
+    orderBy: { stock: "asc" },
+  });
+  return items;
 }

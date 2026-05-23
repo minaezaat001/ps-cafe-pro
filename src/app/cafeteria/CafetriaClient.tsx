@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Coffee, Search, ShoppingCart, Plus, Minus, Trash2, AlertTriangle } from 'lucide-react';
+import { Coffee, Search, ShoppingCart, Plus, Minus, Trash2, AlertTriangle, Package } from 'lucide-react';
 import { processQuickSale } from '../actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -108,7 +108,12 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {filteredItems.map(item => (
+            {filteredItems.length === 0 ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Package className="w-12 h-12 opacity-20 mb-3" />
+                <p className="font-bold text-sm">{isRTL ? 'لا توجد عناصر متاحة' : 'No items available'}</p>
+              </div>
+            ) : filteredItems.map(item => (
               <button key={item.id} disabled={item.stock <= 0} onClick={() => addToCart(item)}
                 className={`glass-card p-4 rounded-xl border border-border hover:border-amber-500/30 transition-all text-left flex flex-col gap-2 group relative ${item.stock <= 0 ? 'opacity-40' : ''}`}>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">

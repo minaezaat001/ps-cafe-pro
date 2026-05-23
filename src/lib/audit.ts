@@ -1,5 +1,6 @@
 import { getAuthJwtPayload } from "@/lib/tenant-guard";
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export type AuditLogAction =
   | "DELETE_ORDER"
@@ -13,6 +14,14 @@ export type AuditLogAction =
   | "CHANGE_SETTING"
   | "START_SHIFT"
   | "END_SHIFT"
+  | "OPEN_SHIFT"
+  | "CLOSE_SHIFT"
+  | "DELETE_DEVICE"
+  | "UPDATE_DEVICE_TYPE"
+  | "DELETE_DEVICE_TYPE"
+  | "TOGGLE_TENANT_SUBSCRIPTION"
+  | "STOP_IMPERSONATION"
+  | "DELETE_TENANT"
   | string;
 
 export interface AuditLogData {
@@ -23,11 +32,14 @@ export interface AuditLogData {
   metadata?: Record<string, any>;
 }
 
-export async function createAuditLog(data: AuditLogData) {
+type TxLike = Pick<Prisma.TransactionClient, "auditLog">;
+
+export async function createAuditLog(data: AuditLogData, tx?: TxLike) {
   try {
     const jwt = await getAuthJwtPayload();
+    const db = tx ?? prisma;
     
-    await prisma.auditLog.create({
+    await db.auditLog.create({
       data: {
         userId: jwt?.id ?? "system",
         action: data.action,

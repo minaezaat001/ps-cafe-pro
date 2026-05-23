@@ -125,6 +125,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
     printChecked,
     setPrintChecked,
     allDevices: hookAllDevices,
+    discountPercent,
+    setDiscountPercent,
   } = useDeviceCard({ device, session, allDevices, deviceTypes, activeShift, onMutationComplete, serverTimeOffset });
 
   const renderModals = () => {
@@ -152,6 +154,8 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
           printSettings={printSettings}
           printChecked={printChecked}
           setPrintChecked={setPrintChecked}
+          discountPercent={discountPercent}
+          onDiscountChange={setDiscountPercent}
         />
 
         <BillSummaryModal

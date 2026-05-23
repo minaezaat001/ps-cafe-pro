@@ -7,3 +7,4 @@ export * from "./device.actions";
 export * from "./settings.actions";
 export * from "./dashboard.actions";
 export * from "./customer-menu.actions";
+export * from "./announcement.actions";
