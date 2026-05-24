@@ -216,7 +216,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
   return (
     <div className="space-y-10" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className={cn('flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8', isRTL && 'lg:flex-row-reverse')}>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
         <div className={isRTL ? 'text-right' : ''}>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-8 bg-blue-500 rounded-full" />
@@ -227,7 +227,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
           <p className="text-muted-foreground text-sm font-medium opacity-70">{t('reports.subtitle')}</p>
         </div>
 
-        <div className={cn('w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-muted/30 p-3 rounded-2xl border border-border backdrop-blur-xl shadow-2xl', isRTL && 'sm:flex-row-reverse')}>
+        <div className="w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-muted/30 p-3 rounded-2xl border border-border backdrop-blur-xl shadow-2xl">
           <div className="flex flex-col gap-1.5 px-1 flex-1 sm:flex-none">
              <span className="text-[10px] font-black text-muted-foreground uppercase px-2">{isRTL ? 'من تاريخ' : 'From Date'}</span>
               <div className="flex items-center gap-3 px-4 py-2.5 bg-card rounded-xl border border-border focus-within:border-blue-500/50 transition-all">
@@ -301,7 +301,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
 
       {/* Invoice Table */}
       <div className="glass-card rounded-2xl border border-border overflow-hidden">
-        <div className={cn('p-6 border-b border-border flex justify-between items-center bg-card/30', isRTL && 'flex-row-reverse')}>
+        <div className="p-6 border-b border-border flex justify-between items-center bg-card/30">
           <h3 className="text-base font-black text-foreground">
             {t('reports.recentInvoices')}
           </h3>
@@ -399,8 +399,8 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
               className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-10"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
-              <div className={cn('flex justify-between items-center mb-7', isRTL && 'flex-row-reverse')}>
-                <div className={cn('flex items-center gap-3', isRTL && 'flex-row-reverse')}>
+              <div className="flex justify-between items-center mb-7">
+                <div className="flex items-center gap-3">
                   <div className="p-3 rounded-xl bg-blue-500/15 text-blue-400"><FileText className="w-5 h-5" /></div>
                   <div className={isRTL ? 'text-right' : ''}>
                     <h2 className="text-lg font-black text-foreground">{t('reports.invoice')}</h2>
@@ -411,7 +411,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
               </div>
 
               <div className="space-y-3 mb-6">
-                <div className={cn('flex justify-between text-xs pb-3 border-b border-border', isRTL && 'flex-row-reverse')}>
+                <div className={cn('flex justify-between text-xs pb-3 border-b border-border')}>
                   <span className="text-muted-foreground font-bold uppercase">{t('reports.source')}</span>
                   <span className="text-foreground font-black">
                     {selectedInvoice.startTime 
@@ -419,11 +419,11 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                       : (selectedInvoice.type ? (isRTL ? (selectedInvoice.type === 'INCOME' ? 'إيداع' : 'مسحوبات') : selectedInvoice.type) : t('reports.quickSale'))}
                   </span>
                 </div>
-                <div className={cn('flex justify-between text-xs pb-3 border-b border-border', isRTL && 'flex-row-reverse')}>
+                <div className={cn('flex justify-between text-xs pb-3 border-b border-border')}>
                   <span className="text-muted-foreground font-bold uppercase">{t('reports.date')}</span>
                   <span className="text-foreground font-black">{format(new Date(selectedInvoice.endTime || selectedInvoice.createdAt), 'MMM dd, yyyy HH:mm')}</span>
                 </div>
-                <div className={cn('flex justify-between text-xs pb-3 border-b border-border', isRTL && 'flex-row-reverse')}>
+                <div className={cn('flex justify-between text-xs pb-3 border-b border-border')}>
                   <span className="text-muted-foreground font-bold uppercase">{isRTL ? 'بواسطة الموظف' : 'By Staff'}</span>
                   <span className="text-blue-400 font-black lowercase">{selectedInvoice.endedByUser?.username || selectedInvoice.user?.username || '---'}</span>
                 </div>
@@ -445,7 +445,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                     const breakdown = getBillBreakdown(selectedInvoice, selectedInvoice.device, new Date(selectedInvoice.endTime || selectedInvoice.isActive).getTime());
                     if (breakdown.segments && breakdown.segments.length > 0) {
                       return breakdown.segments.map((seg: any, idx: number) => (
-                        <div key={idx} className={cn('flex justify-between text-sm py-1', isRTL && 'flex-row-reverse')}>
+                        <div key={idx} className={cn('flex justify-between text-sm py-1')}>
                           <span className="text-muted-foreground">
                             {t('device.account')} {seg.deviceType} ({seg.mode === 'SINGLE' ? t('device.single') : t('device.multi')})
                           </span>
@@ -456,7 +456,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                     return (
                       <>
                         {breakdown.single > 0 && (
-                          <div className={cn('flex justify-between text-sm py-1', isRTL && 'flex-row-reverse')}>
+                          <div className={cn('flex justify-between text-sm py-1')}>
                             <span className="text-muted-foreground">
                               {t('device.account')} {selectedInvoice.device.type} ({t('device.single')})
                             </span>
@@ -464,7 +464,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                           </div>
                         )}
                         {breakdown.multi > 0 && (
-                          <div className={cn('flex justify-between text-sm py-1', isRTL && 'flex-row-reverse')}>
+                          <div className={cn('flex justify-between text-sm py-1')}>
                             <span className="text-muted-foreground">
                               {t('device.account')} {selectedInvoice.device.type} ({t('device.multi')})
                             </span>
@@ -472,7 +472,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                           </div>
                         )}
                         {breakdown.single === 0 && breakdown.multi === 0 && breakdown.gaming >= 0 && (
-                          <div className={cn('flex justify-between text-sm py-1', isRTL && 'flex-row-reverse')}>
+                          <div className={cn('flex justify-between text-sm py-1')}>
                             <span className="text-muted-foreground">
                               {t('device.account')} {selectedInvoice.device.type} ({selectedInvoice.isMulti ? t('device.multi') : t('device.single')})
                             </span>
@@ -486,7 +486,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
 
                   {/* Orders/Quick Sale Items */}
                   {(selectedInvoice.orders || selectedInvoice.items || []).map((o: any, i: number) => (
-                    <div key={i} className={cn('flex justify-between text-sm py-1', isRTL && 'flex-row-reverse')}>
+                    <div key={i} className={cn('flex justify-between text-sm py-1')}>
                       <span className="text-muted-foreground">{o.inventoryItem?.name || 'Item'} x{o.quantity}</span>
                       <span className="font-mono text-muted-foreground">{(o.priceAtTime * o.quantity).toFixed(2)} EGP</span>
                     </div>
@@ -504,7 +504,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                 </span>
               </div>
 
-              <div className={cn('flex gap-3', isRTL && 'flex-row-reverse')}>
+              <div className="flex gap-3">
                 {printSettings.enabled && selectedInvoice.startTime && (
                   <button
                     disabled={isPrinting}

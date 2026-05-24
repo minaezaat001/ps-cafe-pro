@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { Toaster } from "sonner";
 import { useTheme } from "@/lib/ThemeContext";
+import { useLang } from "@/lib/LanguageContext";
 import { Menu, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TrialStatus } from "@/components/TrialStatus";
@@ -39,6 +40,7 @@ const MobileHeader = ({ onOpen, hidden = false }: { onOpen: () => void; hidden?:
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { theme } = useTheme();
+  const { isRTL } = useLang();
   const pathname = usePathname();
 
   const isMenuPage = pathname.startsWith('/menu');
@@ -58,8 +60,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className={cn("flex-1 flex flex-col min-w-0 h-screen overflow-hidden", isFullWidth ? "w-full" : "")}>
         <MobileHeader onOpen={() => setIsSidebarOpen(true)} hidden={isFullWidth} />
         {!isFullWidth && !isPrint && (
-          <div className="hidden lg:flex items-center px-6 pt-3 pb-0 gap-2">
-            <div className="ms-auto"><GlobalSearch /></div>
+          <div className={cn("hidden lg:flex items-center px-6 pt-3 pb-0 gap-2", isRTL ? 'justify-start' : 'justify-end')}>
+            <GlobalSearch />
           </div>
         )}
         

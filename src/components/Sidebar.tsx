@@ -131,7 +131,7 @@ export const Sidebar = ({
           <X className="w-5 h-5" />
         </button>
       {/* Logo */}
-      <div className={cn('flex items-center gap-3 mb-8 px-2', isRTL && 'flex-row-reverse')}>
+      <div className="flex items-center gap-3 mb-8 px-2">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shrink-0"
           style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
           <Gamepad2 className="text-white w-5 h-5" />
@@ -171,7 +171,6 @@ export const Sidebar = ({
               onClick={onClose}
               className={cn(
                 'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative',
-                isRTL && 'flex-row-reverse',
                 isActive
                   ? 'bg-blue-500/10 text-blue-400'
                   : 'text-muted-foreground hover:text-muted-foreground hover:bg-muted'
@@ -203,7 +202,6 @@ export const Sidebar = ({
             onClick={onClose}
             className={cn(
               'flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative mt-4 bg-yellow-500/10 border border-yellow-500/20',
-              isRTL && 'flex-row-reverse',
               pathname.startsWith('/super-admin') ? 'text-yellow-400' : 'text-yellow-500/80 hover:text-yellow-400 hover:bg-yellow-500/20'
             )}
           >
@@ -218,10 +216,7 @@ export const Sidebar = ({
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
-          className={cn(
-            'flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all',
-            isRTL && 'flex-row-reverse'
-          )}
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
         >
           {theme === 'dark' ? <Sun className="w-[18px] h-[18px] shrink-0" /> : <Moon className="w-[18px] h-[18px] shrink-0" />}
           <span className="text-base font-semibold">{theme === 'dark' ? (lang === 'ar' ? 'الوضع الفاتح' : 'Light Mode') : (lang === 'ar' ? 'الوضع الداكن' : 'Dark Mode')}</span>
@@ -230,10 +225,7 @@ export const Sidebar = ({
         {/* Language toggle */}
         <button
           onClick={toggleLanguage}
-          className={cn(
-            'flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all',
-            isRTL && 'flex-row-reverse'
-          )}
+          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
         >
           <Globe className="w-[18px] h-[18px] shrink-0" />
           <span className="text-base font-semibold">{t('common.language')}</span>
@@ -246,7 +238,7 @@ export const Sidebar = ({
         </button>
 
         {/* User */}
-        <div className={cn('flex items-center gap-3 px-4 py-2', isRTL && 'flex-row-reverse')}>
+        <div className="flex items-center gap-3 px-4 py-2">
           <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0"
             style={{ background: 'rgba(59,130,246,0.15)' }}>
             <Users className="w-4 h-4 text-blue-400" />
@@ -260,10 +252,7 @@ export const Sidebar = ({
         {/* Sign out */}
         <button
           onClick={handleLogout}
-          className={cn(
-            'flex items-center gap-3 w-full px-4 py-2.5 text-red-400 hover:bg-red-500/10 rounded-xl transition-all',
-            isRTL && 'flex-row-reverse'
-          )}
+          className="flex items-center gap-3 w-full px-4 py-2.5 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
         >
           <LogOut className="w-[18px] h-[18px] shrink-0" />
           <span className="text-base font-semibold">{t('nav.signOut')}</span>

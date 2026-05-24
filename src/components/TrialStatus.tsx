@@ -52,11 +52,8 @@ export function TrialStatus() {
             isExpired ? "bg-rose-500" : "bg-amber-500"
           )} />
 
-          <div className={cn(
-            "relative z-10 p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6",
-            isRTL && "sm:flex-row-reverse"
-          )}>
-            <div className={cn("flex items-center gap-4", isRTL && "flex-row-reverse text-right")}>
+          <div className="relative z-10 p-4 sm:px-6 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="flex items-center gap-4">
               <div className={cn(
                 "p-2.5 rounded-xl flex items-center justify-center shrink-0 shadow-inner",
                 isExpired 
@@ -88,7 +85,7 @@ export function TrialStatus() {
               </div>
             </div>
 
-            <div className={cn("flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0", isRTL && "flex-row-reverse")}>
+            <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
               <button
                 className={cn(
                   "flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95",

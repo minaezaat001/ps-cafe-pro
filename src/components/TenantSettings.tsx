@@ -100,7 +100,7 @@ export default function TenantSettings() {
     <div className="space-y-5">
       {/* Currency Settings */}
       <div className="glass-card rounded-2xl p-6 border border-border/30">
-        <div className={`flex items-center gap-3 mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
             <Globe className="w-4 h-4 text-blue-400" strokeWidth={2} />
           </div>
@@ -148,7 +148,7 @@ export default function TenantSettings() {
 
       {/* Timezone Settings */}
       <div className="glass-card rounded-2xl p-6 border border-border/30">
-        <div className={`flex items-center gap-3 mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
             <CalendarDays className="w-4 h-4 text-purple-400" strokeWidth={2} />
           </div>
@@ -183,7 +183,7 @@ export default function TenantSettings() {
       <button
         onClick={handleSave}
         disabled={isSaving}
-        className={`w-full py-3 rounded-2xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed ${isRTL ? 'flex-row-reverse' : ''}`}
+        className="w-full py-3 rounded-2xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSaving ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         {isRTL ? 'حفظ الإعدادات' : 'Save Settings'}

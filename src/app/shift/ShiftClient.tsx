@@ -209,7 +209,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
     <div className="space-y-8 p-6 max-w-5xl mx-auto" dir={isRTL ? "rtl" : "ltr"}>
 
       {/* ── Header ── */}
-      <div className={cn("flex justify-between items-start flex-wrap gap-3", isRTL && "flex-row-reverse")}>
+      <div className="flex justify-between items-start flex-wrap gap-3">
         <div className={isRTL ? "text-right" : "text-left"}>
           <h1 className="text-2xl font-black text-foreground flex items-center gap-3">
             <ClipboardList className="w-7 h-7 text-blue-400" />
@@ -240,7 +240,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
         <div className="glass-card rounded-3xl p-6 border-t-4" style={{ borderTopColor: "#3b82f6" }}>
 
           {/* Shift Meta row */}
-          <div className={cn("flex flex-wrap justify-between items-start gap-3 mb-6", isRTL && "flex-row-reverse")}>
+          <div className="flex flex-wrap justify-between items-start gap-3 mb-6">
             <div className={isRTL ? "text-right" : ""}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 uppercase tracking-widest">
@@ -264,7 +264,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                 {formatDistanceToNow(new Date(activeShift.openedAt), { addSuffix: true, locale: isRTL ? ar : undefined })}
               </p>
             </div>
-            <div className={cn("flex gap-2 flex-wrap", isRTL && "flex-row-reverse")}>
+            <div className="flex gap-2 flex-wrap">
               <button onClick={() => window.open(`/print/shift/${activeShift.id}`, "_blank")}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border border-border hover:bg-muted transition-colors">
                 <Printer className="w-3.5 h-3.5" />
@@ -429,12 +429,12 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
               className="glass-card w-full max-w-md p-6 rounded-2xl relative z-[10000] border-t-4 max-h-[85vh] overflow-y-auto scrollbar-hide"
               style={{ borderTopColor: "#6366f1" }}
               dir={isRTL ? "rtl" : "ltr"}>
-              <div className={cn("flex justify-between items-center mb-5", isRTL && "flex-row-reverse")}>
+              <div className="flex justify-between items-center mb-5">
                 <h2 className="text-lg font-black text-foreground flex items-center gap-2">
                   <ClipboardList className="w-5 h-5 text-violet-400" />
                   {isRTL ? "تفاصيل الوردية" : "Shift Details"}
                 </h2>
-                <div className={cn("flex gap-2", isRTL && "flex-row-reverse")}>
+                <div className="flex gap-2">
                   <button onClick={() => window.open(`/print/shift/${detailShift.id}`, "_blank")}
                     className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors">
                     <Printer className="w-4 h-4" />
@@ -466,7 +466,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   { label: isRTL ? "المتوقع" : "Expected", value: `${detailShift.expectedCash?.toFixed(2)} ج` },
                   detailShift.actualCash !== null && { label: isRTL ? "الفعلي" : "Actual", value: `${detailShift.actualCash?.toFixed(2)} ج` },
                 ].filter(Boolean).map((row: any, i) => (
-                  <div key={i} className={cn("flex justify-between items-center py-2 border-b border-border/50", isRTL && "flex-row-reverse")}>
+                  <div key={i} className="flex justify-between items-center py-2 border-b border-border/50">
                     <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">{row.label}</span>
                     <span className="font-bold text-foreground text-sm">{row.value}</span>
                   </div>
@@ -475,8 +475,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                 {/* Variance Display */}
                 {detailShift.variance !== null && (
                   <div className={cn("flex justify-between items-center py-3 rounded-xl px-3",
-                    detailShift.variance > 0.5 ? "bg-emerald-500/10" : detailShift.variance < -0.5 ? "bg-red-500/10" : "bg-amber-500/10",
-                    isRTL && "flex-row-reverse")}>
+                    detailShift.variance > 0.5 ? "bg-emerald-500/10" : detailShift.variance < -0.5 ? "bg-red-500/10" : "bg-amber-500/10")}>
                     <span className={cn("text-[11px] font-black uppercase tracking-widest",
                       detailShift.variance > 0.5 ? "text-emerald-400" : detailShift.variance < -0.5 ? "text-red-400" : "text-amber-400")}>
                       {detailShift.variance > 0.5 ? (isRTL ? "زيادة" : "Surplus") : detailShift.variance < -0.5 ? (isRTL ? "عجز" : "Deficit") : (isRTL ? "تطابق" : "Exact")}
@@ -518,7 +517,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
             >
               {/* Header */}
               <div className={cn("flex justify-between items-center p-5 border-b border-border", isRTL && "flex-row-reverse")}>
-                <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+        <div className="flex items-center gap-2">
                   <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
                     <Coffee className="w-5 h-5 text-amber-400" />
                   </div>
@@ -560,10 +559,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                         initial={{ opacity: 0, x: isRTL ? 12 : -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.04 }}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60 hover:bg-card transition-colors",
-                          isRTL && "flex-row-reverse text-right"
-                        )}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/60 hover:bg-card transition-colors"
                       >
                         {/* Quantity badge */}
                         <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center justify-center shrink-0">
@@ -592,11 +588,8 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
 
               {/* Footer totals */}
               {drinksData && drinksData.items.length > 0 && (
-                <div className={cn(
-                  "border-t border-border p-4 bg-amber-500/5 flex items-center justify-between gap-4",
-                  isRTL && "flex-row-reverse"
-                )}>
-                  <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+                <div className="border-t border-border p-4 bg-amber-500/5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
                       <Coffee className="w-4 h-4 text-amber-400" />
                     </div>
@@ -636,7 +629,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
               className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-[10000] border-t-4"
               style={{ borderTopColor: "#3b82f6" }}
               dir={isRTL ? "rtl" : "ltr"}>
-              <div className={cn("flex justify-between items-center mb-6", isRTL && "flex-row-reverse")}>
+              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                   <LogIn className="w-5 h-5 text-blue-400" />
                   {isRTL ? "فتح وردية جديدة" : "Open New Shift"}
@@ -675,7 +668,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
               className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-[10000] border-t-4"
               style={{ borderTopColor: "#ef4444" }}
               dir={isRTL ? "rtl" : "ltr"}>
-              <div className={cn("flex justify-between items-center mb-5", isRTL && "flex-row-reverse")}>
+              <div className="flex justify-between items-center mb-5">
                 <h2 className="text-xl font-black text-foreground flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-red-400" />
                   {isRTL ? "إغلاق الوردية" : "Close Shift"}
