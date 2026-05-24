@@ -106,7 +106,7 @@ export function calculateSessionTimeCost(session: SessionData, device: DeviceDat
 /**
  * Utility to calculate breakdown (for UI display)
  */
-export function getBillBreakdown(session: SessionData & { discountPercent?: number | unknown }, device: DeviceData, nowOverride?: number) {
+export function getBillBreakdown(session: SessionData, device: DeviceData, nowOverride?: number) {
   const now = nowOverride || Date.now();
   const currentSegmentCost = calculateActualElapsedCost(session, device, now);
 
@@ -163,8 +163,6 @@ export function getBillBreakdown(session: SessionData & { discountPercent?: numb
       ?.reduce((acc, o) => acc + n(o.priceAtTime) * o.quantity, 0) || 0;
 
   const subtotal = gamingTotal + itemsCost;
-  const discountPct = n(session.discountPercent);
-  const discountAmount = discountPct > 0 ? roundToNearestHalf(subtotal * (discountPct / 100)) : 0;
 
   return {
     single: roundToNearestHalf(singleGaming),
@@ -172,9 +170,7 @@ export function getBillBreakdown(session: SessionData & { discountPercent?: numb
     gaming: gamingTotal,
     items: itemsCost,
     subtotal,
-    discountPercent: discountPct,
-    discount: discountAmount,
-    total: subtotal - discountAmount,
+    total: subtotal,
     segments: segmentBreakdown
   };
 }

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Trash2, Percent } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface CheckoutModalProps {
@@ -17,7 +17,7 @@ export interface CheckoutModalProps {
   remainingLabel: string | null;
   isPending: boolean;
   total: string;
-  billBreakdown: { single: number; multi: number; items: number; gaming: number; subtotal: number; discountPercent: number; discount: number; segments: any[] };
+  billBreakdown: { single: number; multi: number; items: number; gaming: number; subtotal: number; segments: any[] };
   onEnd: () => void;
   onRemoveOrder: (orderId: string) => void;
   confirmDeleteId: string | null;
@@ -25,8 +25,6 @@ export interface CheckoutModalProps {
   printSettings: { enabled: boolean; autoPrint: boolean; paperSize?: string };
   printChecked: boolean;
   setPrintChecked: (checked: boolean) => void;
-  discountPercent: number;
-  onDiscountChange: (val: number) => void;
 }
 
 export default function CheckoutModal({
@@ -49,8 +47,6 @@ export default function CheckoutModal({
   printSettings,
   printChecked,
   setPrintChecked,
-  discountPercent,
-  onDiscountChange,
 }: CheckoutModalProps) {
   if (!isOpen) return null;
 
@@ -159,34 +155,12 @@ export default function CheckoutModal({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-border space-y-2">
-            <div className="flex items-center gap-2">
-              <Percent className="w-4 h-4 text-muted-foreground" />
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                value={discountPercent}
-                onChange={(e) => onDiscountChange(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
-                className="w-20 px-2 py-1 rounded-lg bg-card border border-border text-foreground font-bold text-sm text-center"
-                placeholder="0"
-              />
-              <span className="text-sm text-muted-foreground font-bold">% {t('device.discount')}</span>
-            </div>
-          </div>
-
           <div className={cn("pt-4 border-t-2 border-dashed border-border", isRTL ? "text-right" : "text-left")}>
             <p className="text-[13px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.totalToCollect')}</p>
             <div className={cn("text-4xl font-black tracking-tighter", accent.text, isRTL ? "flex flex-row-reverse justify-start" : "flex justify-start")}>
               <span className="text-base mt-auto mb-1 mx-1 text-muted-foreground">EGP</span>
               {total}
             </div>
-            {billBreakdown.discount > 0 && (
-              <p className="text-xs text-emerald-400 font-bold mt-1">
-                {isRTL ? `توفير ${billBreakdown.discount.toFixed(2)} ج.م.` : `Save ${billBreakdown.discount.toFixed(2)} EGP`}
-              </p>
-            )}
           </div>
         </div>
 

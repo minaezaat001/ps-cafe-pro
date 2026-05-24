@@ -1,12 +1,14 @@
-import type { Prisma } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { decToNumber } from "@/lib/decimals";
 import { FT_SESSION_GAMING, FT_EXPENSE, FT_INCOME } from "@/lib/finance-constants";
 
-export type DbClient = Prisma.TransactionClient | typeof prisma;
+export type DbClient = {
+  shift: { findFirst: (args: any) => Promise<any> };
+  financialTransaction: { aggregate: (args: any) => Promise<any>; findMany: (args: any) => Promise<any> };
+};
 
 export async function computeShiftSummary(shiftId: string, db: DbClient = prisma) {
-  const shift = await db.shift.findUnique({
+  const shift = await db.shift.findFirst({
     where: { id: shiftId },
     include: {
       sessions: {
@@ -30,7 +32,7 @@ export async function computeShiftSummary(shiftId: string, db: DbClient = prisma
 
   let gaming = decToNumber(gamingAgg._sum.amount);
   const sessionGamingFallback = shift.sessions.reduce(
-    (acc, s) => acc + decToNumber(s.accumulatedTimeCost),
+    (acc: number, s: any) => acc + decToNumber(s.accumulatedTimeCost),
     0
   );
   if (gaming === 0) {
@@ -39,7 +41,7 @@ export async function computeShiftSummary(shiftId: string, db: DbClient = prisma
 
   let sessionCafeteria = 0;
   for (const s of shift.sessions) {
-    for (const o of s.orders.filter(order => !order.isDeleted)) {
+    for (const o of s.orders.filter((order: any) => !order.isDeleted)) {
       sessionCafeteria += decToNumber(o.priceAtTime) * o.quantity;
     }
   }

@@ -1,8 +1,8 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { getTenantWhereForRead } from "@/lib/tenant-scope";
+import { getTenantWhereForRead, requireWritableTenantContext, getJwtTenantId } from "@/lib/tenant-scope";
 import { createAuditLog } from "@/lib/audit";
 import { SaveAppSettingSchema, UpdateTenantSettingsSchema, AddUserSchema, UpdateUserSchema, ClearOldDataSchema, validateOrThrow } from "@/lib/validations";
 
@@ -148,6 +148,7 @@ export async function saveAppSetting(key: string, value: string) {
   try {
     validateOrThrow(SaveAppSettingSchema, { key, value });
     const user = await requireSettingsAccess();
+    await requireWritableTenantContext();
 
     await prisma.$transaction(async (tx) => {
       await tx.appSetting.upsert({
@@ -211,6 +212,7 @@ export async function updateTenantSettings(data: {
 }) {
   validateOrThrow(UpdateTenantSettingsSchema, data);
   await requireSettingsAccess();
+  await requireWritableTenantContext();
   const user = await requireAuthUser();
 
   // Get current settings for audit
@@ -282,8 +284,6 @@ export async function addUser(data: {
   if (!data.password?.trim()) {
     throw new Error("Password is required");
   }
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
-  const tenantId = (await getJwtTenantId()) || null;
 
   const passwordHash = await bcrypt.hash(data.password!, 10);
   await prisma.$transaction(async (tx) => {
@@ -293,7 +293,6 @@ export async function addUser(data: {
         password: passwordHash,
         role: data.role,
         permissions: data.permissions ?? "[]",
-        tenantId,
       },
     });
     await createAuditLog({
@@ -313,10 +312,14 @@ export async function updateUser(
 ) {
   validateOrThrow(UpdateUserSchema, data);
   const currentUser = await requireAdminAsync();
+  await requireWritableTenantContext();
 
   // Prevent changing a user to SUPER_ADMIN or modifying SUPER_ADMIN accounts
   const existing = await prisma.user.findUnique({ where: { id } });
-  if (existing?.role === "SUPER_ADMIN") {
+  if (!existing) {
+    throw new Error("User not found");
+  }
+  if (existing.role === "SUPER_ADMIN") {
     throw new Error("Cannot modify a Super Admin account");
   }
   if (data.role === "SUPER_ADMIN") {
@@ -344,9 +347,13 @@ export async function updateUser(
 
 export async function deleteUser(id: string) {
   const currentUser = await requireAdminAsync();
+  await requireWritableTenantContext();
 
   const existing = await prisma.user.findUnique({ where: { id } });
-  if (existing?.role === "SUPER_ADMIN") {
+  if (!existing) {
+    throw new Error("User not found");
+  }
+  if (existing.role === "SUPER_ADMIN") {
     throw new Error("Cannot delete a Super Admin account");
   }
 

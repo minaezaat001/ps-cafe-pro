@@ -1,6 +1,6 @@
 import { getCurrentUser, getDeviceTypes } from "@/app/actions";
 import DevicesClient from "./DevicesClient";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { decToNumber } from "@/lib/decimals";
 
 export const dynamic = "force-dynamic";

@@ -1,8 +1,9 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requirePermissionAsync, requireAuthUser } from "@/lib/action-guards";
+import { requireWritableTenantContext, getJwtTenantId } from "@/lib/tenant-scope";
 import { toDecimal, decToNumber } from "@/lib/decimals";
 import { createAuditLog } from "@/lib/audit";
 import { InventoryItemSchema, InventoryUpdateSchema, OrderItemSchema, CartSchema, DeleteFinanceSchema, validateOrThrow } from "@/lib/validations";
@@ -49,10 +50,8 @@ export async function getInventoryForCafeteria() {
 export async function addInventoryItem(data: { name: string; category: string; price: number; stock: number }) {
   validateOrThrow(InventoryItemSchema, data);
   await requirePermissionAsync("inventory.manage");
+  await requireWritableTenantContext();
   const user = await requireAuthUser();
-
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
-  const tenantId = (await getJwtTenantId()) || null;
 
   let inventoryItem;
   await prisma.$transaction(async (tx) => {
@@ -62,7 +61,6 @@ export async function addInventoryItem(data: { name: string; category: string; p
         category: data.category,
         price: toDecimal(data.price),
         stock: data.stock,
-        tenantId,
       },
     });
     
@@ -91,10 +89,11 @@ export async function updateInventoryItem(id: string, data: { name?: string; cat
     validateOrThrow(InventoryUpdateSchema, data);
   }
   await requirePermissionAsync("inventory.manage");
+  await requireWritableTenantContext();
   const user = await requireAuthUser();
 
   // Get the current item to track changes
-  const currentItem = await prisma.inventoryItem.findUnique({ where: { id } });
+  const currentItem = await prisma.inventoryItem.findFirst({ where: { id } });
   if (!currentItem) throw new Error("Item not found");
 
   await prisma.$transaction(async (tx) => {
@@ -132,10 +131,11 @@ export async function updateInventoryItem(id: string, data: { name?: string; cat
 
 export async function deleteInventoryItem(id: string, reason: string = "Inventory item deleted") {
   await requirePermissionAsync("inventory.manage");
+  await requireWritableTenantContext();
   const user = await requireAuthUser();
 
   // Get the current item before deletion for audit
-  const currentItem = await prisma.inventoryItem.findUnique({ where: { id } });
+  const currentItem = await prisma.inventoryItem.findFirst({ where: { id } });
   if (!currentItem) throw new Error("Item not found");
 
   await prisma.$transaction(async (tx) => {
@@ -166,17 +166,13 @@ export async function deleteInventoryItem(id: string, reason: string = "Inventor
 export async function processQuickSale(items: { itemId: string; quantity: number }[], reason: string = "Quick sale processed") {
   validateOrThrow(CartSchema, items);
   const userBuffer = await requirePermissionAsync("cafeteria.manage");
+  await requireWritableTenantContext();
   const user = await requireAuthUser();
-
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
   const tenantId = (await getJwtTenantId()) || null;
 
   await prisma.$transaction(async (tx) => {
     const activeShift = await tx.shift.findFirst({
-      where: {
-        status: "OPEN",
-        ...(tenantId ? { tenantId } : {}),
-      },
+      where: { status: "OPEN" },
     });
 
     if (!activeShift) {
@@ -188,7 +184,7 @@ export async function processQuickSale(items: { itemId: string; quantity: number
     const saleDetails = [];
 
     for (const item of items) {
-      const inventoryItem = await tx.inventoryItem.findUnique({ where: { id: item.itemId } });
+      const inventoryItem = await tx.inventoryItem.findFirst({ where: { id: item.itemId } });
       if (!inventoryItem) {
         throw new Error(`المنتج غير موجود: ${item.itemId}`);
       }
@@ -234,7 +230,6 @@ export async function processQuickSale(items: { itemId: string; quantity: number
         totalAmount: toDecimal(totalAmount),
         userId: userBuffer.id,
         shiftId: activeShift.id,
-        tenantId,
         items: {
           create: saleItems.map(item => ({ ...item, tenantId })),
         },
@@ -269,10 +264,11 @@ export async function processQuickSale(items: { itemId: string; quantity: number
 export async function voidSale(saleId: string, reason: string = "Sale voided") {
   validateOrThrow(DeleteFinanceSchema, { id: saleId, reason });
   const user = await requirePermissionAsync("cafeteria.manage");
+  await requireWritableTenantContext();
   const currentUser = await requireAuthUser();
 
   await prisma.$transaction(async (tx) => {
-    const sale = await tx.sale.findUnique({
+    const sale = await tx.sale.findFirst({
       where: { id: saleId },
       include: { items: true }
     });

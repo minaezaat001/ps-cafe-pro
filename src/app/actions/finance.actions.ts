@@ -1,10 +1,11 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { toDecimal } from "@/lib/decimals";
 import { requirePermissionAsync, requireAdminAsync, requireAuthUser } from "@/lib/action-guards";
+import { requireWritableTenantContext } from "@/lib/tenant-scope";
 import { FT_SESSION_GAMING } from "@/lib/finance-constants";
 import { createAuditLog } from "@/lib/audit";
 import { getTenantWhereForRead, getJwtTenantId } from "@/lib/tenant-scope";
@@ -108,8 +109,9 @@ export async function getFinancialTransactions(startDate?: Date, endDate?: Date)
 export async function deleteFinancialTransaction(id: string, reason: string = "Financial transaction deleted") {
   validateOrThrow(DeleteFinanceSchema, { id, reason });
   const user = await requireAdminAsync();
+  await requireWritableTenantContext();
 
-  const row = await prisma.financialTransaction.findUnique({ where: { id } });
+  const row = await prisma.financialTransaction.findFirst({ where: { id } });
   if (row?.type === FT_SESSION_GAMING) {
     throw new Error("Cannot delete automated session settlement records");
   }

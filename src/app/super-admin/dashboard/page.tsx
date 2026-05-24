@@ -7,8 +7,10 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { getAllTenants, toggleTenantSubscription, updateTenantTrial, deleteTenant, impersonateTenant, getGlobalSystemStats, type GlobalSystemStats } from '../../actions/super-admin.actions';
 import { createAnnouncement } from '../../actions/announcement.actions';
+import { useLang } from '@/lib/LanguageContext';
 
 export default function SuperAdminDashboard() {
+  const { t, isRTL } = useLang();
   const [tenants, setTenants] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +40,7 @@ export default function SuperAdminDashboard() {
   const handleToggleSubscription = async (id: string, currentStatus: boolean) => {
     try {
       await toggleTenantSubscription(id, !currentStatus);
-      toast.success(currentStatus ? 'Subscription deactivated' : 'Subscription activated');
+      toast.success(currentStatus ? t('superAdmin.deactivate') : t('superAdmin.markPaid'));
       fetchTenants();
     } catch (err: any) {
       toast.error(err.message);
@@ -80,7 +82,7 @@ export default function SuperAdminDashboard() {
   };
 
   const handleDeleteTenant = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the account for "${name}"? This action is permanent and will delete ALL data for this cafe.`)) return;
+    if (!confirm(`${t('superAdmin.deleteConfirm')} "${name}"? ${t('superAdmin.deleteConfirmDesc')}`)) return;
     
     try {
       await deleteTenant(id);
@@ -130,26 +132,26 @@ export default function SuperAdminDashboard() {
         <div>
           <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
             <Crown className="w-8 h-8 text-yellow-500" />
-            Platform <span className="text-blue-500">Master Control</span>
+            {t('superAdmin.title')} <span className="text-blue-500">{t('superAdmin.titleAccent')}</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium">Manage all cafe subscriptions and trials</p>
+          <p className="text-muted-foreground mt-1 font-medium">{t('superAdmin.subtitle')}</p>
         </div>
         <button 
           onClick={fetchTenants}
           className="flex items-center gap-2 px-4 py-2 bg-secondary rounded-xl hover:bg-secondary/80 transition-all font-semibold"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh Data
+          {t('superAdmin.refresh')}
         </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Total Tenants', value: stats.total, icon: Users, color: 'blue' },
-          { label: 'Paid Subscriptions', value: stats.active, icon: CheckCircle2, color: 'emerald' },
-          { label: 'On Free Trial', value: stats.trial, icon: Clock, color: 'amber' },
-          { label: 'Expired Trials', value: stats.expired, icon: XCircle, color: 'rose' },
+          { label: t('superAdmin.totalTenants'), value: stats.total, icon: Users, color: 'blue' },
+          { label: t('superAdmin.paidSubscriptions'), value: stats.active, icon: CheckCircle2, color: 'emerald' },
+          { label: t('superAdmin.freeTrial'), value: stats.trial, icon: Clock, color: 'amber' },
+          { label: t('superAdmin.expiredTrials'), value: stats.expired, icon: XCircle, color: 'rose' },
         ].map((stat, i) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -178,7 +180,7 @@ export default function SuperAdminDashboard() {
             <HeartPulse className="w-5 h-5 text-emerald-400" />
           </div>
           <h2 className="text-xl font-black tracking-tight text-foreground">
-            System <span className="text-emerald-400">Health</span>
+            {t('superAdmin.systemHealth')} <span className="text-emerald-400">{t('superAdmin.healthAccent')}</span>
           </h2>
           {healthLoading && <RefreshCw className="w-4 h-4 text-muted-foreground animate-spin" />}
         </div>
@@ -187,34 +189,34 @@ export default function SuperAdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           {[
             {
-              label: 'Active Sessions',
+              label: t('superAdmin.activeSessions'),
               value: systemStats?.activeSessions ?? '—',
               icon: Activity,
               color: 'blue',
             },
             {
-              label: "Today's Revenue",
+              label: t('superAdmin.todayRevenue'),
               value: systemStats ? `${formatCurrency(systemStats.todayRevenue)}` : '—',
               icon: CreditCard,
               color: 'emerald',
             },
             {
-              label: 'Open Shifts',
+              label: t('superAdmin.openShifts'),
               value: systemStats?.openShiftCount ?? '—',
               icon: Clock,
               color: 'violet',
             },
             {
-              label: 'Overdue Shifts',
+              label: t('superAdmin.overdueShifts'),
               value: systemStats?.overdueShifts.length ?? '—',
               icon: AlertTriangle,
               color: systemStats && systemStats.overdueShifts.length > 0 ? 'rose' : 'amber',
               pulse: systemStats && systemStats.overdueShifts.length > 0,
             },
             {
-              label: 'Tenant Health',
+              label: t('superAdmin.tenantHealth'),
               value: systemStats ? `${systemStats.subscribedTenants}/${systemStats.totalTenants}` : '—',
-              sub: systemStats ? `${systemStats.staleTenants} stale` : '',
+              sub: systemStats ? `${systemStats.staleTenants} ${t('superAdmin.stale')}` : '',
               icon: CheckCircle2,
               color:
                 systemStats && systemStats.staleTenants > 0
@@ -262,10 +264,10 @@ export default function SuperAdminDashboard() {
               </div>
               <div>
                 <h3 className="font-black text-sm text-rose-300">
-                  Critical Alert{systemStats.overdueShifts.length > 1 ? 's' : ''}
+                  {t('superAdmin.criticalAlert')}{systemStats.overdueShifts.length > 1 ? 's' : ''}
                 </h3>
                 <p className="text-[11px] font-semibold text-muted-foreground">
-                  {systemStats.overdueShifts.length} shift{systemStats.overdueShifts.length > 1 ? 's' : ''} open for over 24 hours — staff forgot to close
+                  {systemStats.overdueShifts.length} {t('superAdmin.overdueDesc')}
                 </p>
               </div>
             </div>
@@ -301,7 +303,7 @@ export default function SuperAdminDashboard() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 transition-all text-xs font-bold"
                         >
                           <Key className="w-3 h-3" />
-                          Login As
+                          {t('superAdmin.loginAs')}
                         </button>
                       </td>
                     </tr>
@@ -324,9 +326,9 @@ export default function SuperAdminDashboard() {
             <Megaphone className="w-4 h-4 text-blue-400" />
           </div>
           <div>
-            <h3 className="font-black text-sm text-foreground">Broadcast Announcement</h3>
+            <h3 className="font-black text-sm text-foreground">{t('superAdmin.broadcastTitle')}</h3>
             <p className="text-[11px] font-semibold text-muted-foreground">
-              Send a system-wide notification to all users across all tenants
+              {t('superAdmin.broadcastDesc')}
             </p>
           </div>
         </div>
@@ -336,7 +338,7 @@ export default function SuperAdminDashboard() {
               type="text"
               value={broadcastMsg}
               onChange={(e) => setBroadcastMsg(e.target.value)}
-              placeholder="Type your announcement message..."
+              placeholder={t('superAdmin.broadcastPlaceholder')}
               maxLength={500}
               className="flex-1 px-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium placeholder:text-muted-foreground/40"
             />
@@ -354,7 +356,7 @@ export default function SuperAdminDashboard() {
               disabled={sending || !broadcastMsg.trim()}
               className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold text-sm hover:bg-blue-600 transition-all disabled:opacity-40 shrink-0"
             >
-              {sending ? 'Sending...' : 'Broadcast'}
+              {sending ? t('superAdmin.sending') : t('superAdmin.broadcastBtn')}
             </button>
           </div>
         </form>
@@ -367,7 +369,7 @@ export default function SuperAdminDashboard() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder={t('superAdmin.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
@@ -379,10 +381,10 @@ export default function SuperAdminDashboard() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-secondary/30">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Tenant Information</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Status</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Usage</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground text-right">Actions</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('superAdmin.tenantInfo')}</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('superAdmin.status')}</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('superAdmin.usage')}</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-muted-foreground text-right">{t('superAdmin.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -410,31 +412,31 @@ export default function SuperAdminDashboard() {
                     <td className="px-6 py-5">
                       {tenant.isSubscribed ? (
                         <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold flex items-center gap-1.5 w-fit">
-                          <CheckCircle2 className="w-3 h-3" /> Active
+                          <CheckCircle2 className="w-3 h-3" /> {t('superAdmin.activeStatus')}
                         </span>
                       ) : (
                         new Date(tenant.trialEndDate) > new Date() ? (
                           <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-xs font-bold flex items-center gap-1.5 w-fit">
-                            <Clock className="w-3 h-3" /> Trial ({Math.ceil((new Date(tenant.trialEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}d left)
+                            <Clock className="w-3 h-3" /> {t('superAdmin.trialStatus')} ({Math.ceil((new Date(tenant.trialEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}{t('superAdmin.daysLeft')})
                           </span>
                         ) : (
                           <span className="px-3 py-1 rounded-full bg-rose-500/10 text-rose-500 text-xs font-bold flex items-center gap-1.5 w-fit">
-                            <XCircle className="w-3 h-3" /> Expired
+                            <XCircle className="w-3 h-3" /> {t('superAdmin.expiredStatus')}
                           </span>
                         )
                       )}
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex gap-4 text-xs font-bold text-muted-foreground">
-                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {tenant._count.users} Users</span>
-                        <span className="flex items-center gap-1"><CreditCard className="w-3 h-3" /> {tenant._count.devices} Devices</span>
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {tenant._count.users} {t('superAdmin.users')}</span>
+                        <span className="flex items-center gap-1"><CreditCard className="w-3 h-3" /> {tenant._count.devices} {t('superAdmin.devices')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right space-x-2">
                       <button
                         onClick={() => handleImpersonate(tenant.id, tenant.name)}
                         className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all"
-                        title={`Login as ${tenant.name}`}
+                        title={`${t('superAdmin.loginAsTitle')} ${tenant.name}`}
                       >
                         <Key className="w-4 h-4" />
                       </button>
@@ -442,7 +444,7 @@ export default function SuperAdminDashboard() {
                         onClick={() => handleExtendTrial(tenant.id)}
                         className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary-hover text-xs font-bold transition-all"
                       >
-                        Extend Trial
+                        {t('superAdmin.extendTrial')}
                       </button>
                       <button
                         onClick={() => handleToggleSubscription(tenant.id, tenant.isSubscribed)}
@@ -457,7 +459,7 @@ export default function SuperAdminDashboard() {
                       <button
                         onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
                         className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 transition-all"
-                        title="Delete Account"
+                        title={t('superAdmin.deleteAccount')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -469,7 +471,7 @@ export default function SuperAdminDashboard() {
           </table>
           {filteredTenants.length === 0 && !isLoading && (
             <div className="p-12 text-center text-muted-foreground font-medium">
-              No tenants found matching your search.
+              {t('superAdmin.noTenants')}
             </div>
           )}
         </div>

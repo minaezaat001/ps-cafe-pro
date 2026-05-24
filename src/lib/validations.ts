@@ -57,8 +57,6 @@ export const StartSessionSchema = z.object({
 export const EndSessionSchema = z.object({
   sessionId: z.string().min(1),
   reason: z.string().optional(),
-  discountPercent: z.number().min(0).max(100).finite().optional(),
-  discountReason: z.string().max(500).optional(),
 });
 
 export const AddSessionTimeSchema = z.object({
@@ -136,8 +134,6 @@ function getFieldLabel(path: string): string {
     shiftId: "الوردية",
     actualCash: "النقدية الفعلية",
     openingFloat: "الصندوق الافتتاحي",
-    discountPercent: "نسبة الخصم",
-    discountReason: "سبب الخصم",
     additionalMinutes: "الدقائق الإضافية",
     notes: "ملاحظات",
     number: "رقم الجهاز",

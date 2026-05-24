@@ -1,11 +1,11 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { decToNumber } from "@/lib/decimals";
 import { getAppSetting } from "./settings.actions";
-import { getTenantWhereForRead } from "@/lib/tenant-scope";
+import { getTenantWhereForRead, requireWritableTenantContext } from "@/lib/tenant-scope";
 import { requirePermissionAsync } from "@/lib/action-guards";
 import { CustomerOrderSchema, OrderItemSchema, validateOrThrow } from "@/lib/validations";
 
@@ -154,8 +154,9 @@ export async function confirmPendingOrder(orderId: string): Promise<{ success: t
   try {
     if (!orderId) throw new Error("معرف الطلب مطلوب");
     await requirePermissionAsync("cafeteria.manage");
+    await requireWritableTenantContext();
 
-    const order = await prisma.order.findUnique({ where: { id: orderId }, include: { inventoryItem: true } });
+    const order = await prisma.order.findFirst({ where: { id: orderId }, include: { inventoryItem: true } });
     if (!order) return { success: false, message: "الطلب غير موجود" };
     if (order.status !== "PENDING") return { success: false, message: "حالة الطلب لا تسمح بالتأكيد" };
 
@@ -187,8 +188,9 @@ export async function cancelPendingOrder(orderId: string): Promise<{ success: tr
   try {
     if (!orderId) throw new Error("معرف الطلب مطلوب");
     await requirePermissionAsync("cafeteria.manage");
+    await requireWritableTenantContext();
 
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const order = await prisma.order.findFirst({ where: { id: orderId } });
     if (!order) return { success: false, message: "الطلب غير موجود" };
     if (order.status !== "PENDING") return { success: false, message: "لا يمكن إلغاء طلب تم تنفيذه بالفعل" };
 

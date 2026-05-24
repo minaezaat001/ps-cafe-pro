@@ -1,10 +1,11 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import path from "path";
 import fs from "fs/promises";
 import { requirePermissionAsync, requireAdminAsync, requireAuthUser } from "@/lib/action-guards";
+import { requireWritableTenantContext } from "@/lib/tenant-scope";
 import { createAuditLog } from "@/lib/audit";
 import { toDecimal } from "@/lib/decimals";
 
@@ -15,9 +16,7 @@ export async function addDevice(data: {
   hourlyRateMulti: number;
 }) {
   await requirePermissionAsync("devices.manage");
-
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
-  const tenantId = (await getJwtTenantId()) || null;
+  await requireWritableTenantContext();
 
   await prisma.device.create({
     data: {
@@ -25,7 +24,6 @@ export async function addDevice(data: {
       type: data.type,
       hourlyRateSingle: toDecimal(data.hourlyRateSingle),
       hourlyRateMulti: toDecimal(data.hourlyRateMulti),
-      tenantId,
     },
   });
   revalidatePath("/");
@@ -86,22 +84,21 @@ export async function getDeviceTypes() {
 
 export async function addDeviceType(data: { name: string; color: string; icon: string }) {
   await requirePermissionAsync("devices.manage");
+  await requireWritableTenantContext();
 
-  const { getJwtTenantId } = await import("@/lib/tenant-scope");
-  const tenantId = (await getJwtTenantId()) || null;
-
-  const existing = await prisma.deviceType.findFirst({ where: { name: data.name, tenantId: tenantId ?? undefined } });
+  const existing = await prisma.deviceType.findFirst({ where: { name: data.name } });
   if (existing) throw new Error("A device type with this name already exists");
 
-  await prisma.deviceType.create({ data: { ...data, tenantId } });
+  await prisma.deviceType.create({ data });
   revalidatePath("/");
   revalidatePath("/devices");
 }
 
 export async function deleteDeviceType(id: string) {
   const user = await requirePermissionAsync("devices.manage");
+  await requireWritableTenantContext();
 
-  const typeObj = await prisma.deviceType.findUnique({ where: { id } });
+  const typeObj = await prisma.deviceType.findFirst({ where: { id } });
   if (!typeObj) throw new Error("Type not found / النوع غير موجود");
 
   const activeDevices = await prisma.device.findFirst({ where: { type: typeObj.name } });
@@ -140,8 +137,9 @@ export async function deleteDeviceType(id: string) {
 
 export async function updateDeviceType(id: string, data: { name: string; color: string; icon: string }) {
   const user = await requirePermissionAsync("devices.manage");
+  await requireWritableTenantContext();
 
-  const oldType = await prisma.deviceType.findUnique({ where: { id } });
+  const oldType = await prisma.deviceType.findFirst({ where: { id } });
   if (!oldType) throw new Error("Type not found");
 
   await prisma.$transaction(async (tx) => {
@@ -186,9 +184,10 @@ export async function updateDevice(
   }
 ) {
   await requirePermissionAsync("devices.manage");
+  await requireWritableTenantContext();
 
   await prisma.$transaction(async (tx) => {
-    const oldDevice = await tx.device.findUnique({
+    const oldDevice = await tx.device.findFirst({
       where: { id },
       include: {
         sessions: {
@@ -283,8 +282,9 @@ export async function updateDevice(
 
 export async function deleteDevice(id: string) {
   const user = await requirePermissionAsync("devices.manage");
+  await requireWritableTenantContext();
 
-  const device = await prisma.device.findUnique({
+  const device = await prisma.device.findFirst({
     where: { id },
     include: { sessions: { take: 1 } }
   });

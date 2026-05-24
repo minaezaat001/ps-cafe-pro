@@ -32,7 +32,7 @@ export interface AuditLogData {
   metadata?: Record<string, any>;
 }
 
-type TxLike = Pick<Prisma.TransactionClient, "auditLog">;
+type TxLike = { auditLog: { create: (args: any) => Promise<any> } };
 
 export async function createAuditLog(data: AuditLogData, tx?: TxLike) {
   try {

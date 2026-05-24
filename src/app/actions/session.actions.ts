@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { calculateSessionTimeCost, calculateActualElapsedCost, getBillBreakdown } from "@/lib/billing";
 import { requirePermissionAsync, requireAuthUser } from "@/lib/action-guards";
@@ -90,8 +90,8 @@ export async function startSession(
   revalidatePath("/");
 }
 
-export async function endSession(sessionId: string, reason: string = "Session ended", discountPercent: number = 0, discountReason?: string) {
-  validateOrThrow(EndSessionSchema, { sessionId, reason, discountPercent, discountReason });
+export async function endSession(sessionId: string, reason: string = "Session ended") {
+  validateOrThrow(EndSessionSchema, { sessionId, reason });
   await requirePermissionAsync("dashboard.manage");
   await requireWritableTenantContext();
   const userBuffer = await requireAuthUser();
@@ -123,7 +123,7 @@ export async function endSession(sessionId: string, reason: string = "Session en
 
     const now = new Date();
     const gamingBreakdown = getBillBreakdown(
-      { ...session, discountPercent },
+      session,
       session.device,
       now.getTime()
     );
@@ -158,8 +158,6 @@ export async function endSession(sessionId: string, reason: string = "Session en
         accumulatedTimeCost: toDecimal(gamingBreakdown.gaming),
         accumulatedSingleCost: toDecimal(gamingBreakdown.single),
         accumulatedMultiCost: toDecimal(gamingBreakdown.multi),
-        discountPercent: toDecimal(discountPercent),
-        discountReason: discountReason || null,
         shiftId: currentShift.id,
       },
     });
@@ -169,7 +167,7 @@ export async function endSession(sessionId: string, reason: string = "Session en
       data: {
         type: FT_SESSION_GAMING,
         amount: collectedAmount,
-        description: `Session settlement · ${sessionId} · device #${session.device.number}${discountPercent > 0 ? ` · ${discountPercent}% discount` : ""}`,
+        description: `Session settlement · ${sessionId} · device #${session.device.number}`,
         userId: userBuffer.id,
         shiftId: currentShift.id,
         tenantId: session.tenantId,
@@ -188,8 +186,6 @@ export async function endSession(sessionId: string, reason: string = "Session en
         deviceId: session.deviceId,
         gamingCost: gamingBreakdown.gaming,
         itemsCost: gamingBreakdown.items,
-        discountPercent,
-        discountAmount: gamingBreakdown.discount,
         totalCollected: gamingBreakdown.total,
         timestamp: new Date().toISOString()
       }
@@ -280,7 +276,7 @@ export async function addSessionTime(sessionId: string, additionalMinutes: numbe
   await requireWritableTenantContext();
   const user = await requireAuthUser();
 
-  const session = await prisma.session.findUnique({
+  const session = await prisma.session.findFirst({
     where: { id: sessionId },
   });
   if (!session || !session.isActive || session.type !== "FIXED") {

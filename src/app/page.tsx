@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  if (user.role === 'SUPER_ADMIN') {
+  if (user.role === 'SUPER_ADMIN' && !user.isImpersonating) {
     redirect('/super-admin/dashboard');
   }
 

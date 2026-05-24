@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { calculateSessionTimeCost } from "@/lib/billing";
 import { decToNumber, toDecimal } from "@/lib/decimals";
