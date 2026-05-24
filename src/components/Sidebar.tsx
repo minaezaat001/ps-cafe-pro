@@ -126,7 +126,7 @@ export const Sidebar = ({
         {/* Mobile Close Button */}
         <button 
           onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 p-2 text-muted-foreground hover:bg-muted rounded-lg"
+          className={cn("lg:hidden absolute top-4 p-2 text-muted-foreground hover:bg-muted rounded-lg", isRTL ? 'left-4' : 'right-4')}
         >
           <X className="w-5 h-5" />
         </button>

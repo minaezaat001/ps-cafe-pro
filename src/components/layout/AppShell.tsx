@@ -58,8 +58,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className={cn("flex-1 flex flex-col min-w-0 h-screen overflow-hidden", isFullWidth ? "w-full" : "")}>
         <MobileHeader onOpen={() => setIsSidebarOpen(true)} hidden={isFullWidth} />
         {!isFullWidth && !isPrint && (
-          <div className="hidden lg:flex items-center justify-end px-6 pt-3 pb-0 gap-2">
-            <GlobalSearch />
+          <div className="hidden lg:flex items-center px-6 pt-3 pb-0 gap-2">
+            <div className="ms-auto"><GlobalSearch /></div>
           </div>
         )}
         

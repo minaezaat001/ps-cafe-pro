@@ -200,7 +200,7 @@ const PaperSizeSelector = ({
               <div className="text-[10px] text-muted-foreground mt-0.5">{opt.sublabel}</div>
             </div>
             {isActive && (
-              <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+              <div className={cn("absolute top-2 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center", isRTL ? 'left-2' : 'right-2')}>
                 <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             )}
@@ -769,7 +769,7 @@ export default function SettingsClient() {
                       }}
                       className={cn(
                         'flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-xl hover:bg-card/50',
-                        isRTL && 'flex-row-reverse mr-auto' 
+                        isRTL && 'flex-row-reverse' 
                       )}
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -932,13 +932,13 @@ export default function SettingsClient() {
             >
               {/* colored top bar */}
               <div className={cn(
-                'absolute top-0 left-0 right-0 h-1 rounded-t-3xl',
+                'absolute top-0 inset-x-0 h-1 rounded-t-3xl',
                 confirmModal === 'RESET' ? 'bg-red-500' : confirmModal === 'CLEAR_OLD' ? 'bg-amber-500' : 'bg-blue-500'
               )} />
 
               <button
                 onClick={() => !isPending && setConfirmModal(null)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors", isRTL ? 'left-4' : 'right-4')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1010,10 +1010,10 @@ export default function SettingsClient() {
               className="relative bg-card border border-teal-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl overflow-hidden"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
-              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-teal-500" />
+              <div className="absolute top-0 inset-x-0 h-1 rounded-t-3xl bg-teal-500" />
               <button
                 onClick={() => !isPending && setBackupModal(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground", isRTL ? 'left-4' : 'right-4')}
               >
                 <X className="w-4 h-4" />
               </button>
