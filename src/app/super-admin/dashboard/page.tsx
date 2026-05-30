@@ -115,7 +115,8 @@ export default function SuperAdminDashboard() {
 
   const filteredTenants = tenants.filter(t => 
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    t.email.toLowerCase().includes(searchTerm.toLowerCase())
+    t.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.phone && t.phone.includes(searchTerm))
   );
 
   const stats = {
@@ -406,6 +407,7 @@ export default function SuperAdminDashboard() {
                         <div>
                           <p className="font-bold text-foreground">{tenant.name}</p>
                           <p className="text-xs text-muted-foreground font-medium">{tenant.email}</p>
+                          {tenant.phone && <p className="text-xs text-muted-foreground/60 font-medium mt-0.5" dir="ltr">{tenant.phone}</p>}
                         </div>
                       </div>
                     </td>

@@ -11,6 +11,7 @@ model Tenant {
   id                    String                 @id @default(cuid())
   name                  String
   email                 String                 @unique
+  phone                 String                 @default("")
   passwordHash          String
   trialStartDate        DateTime               @default(now())
   trialEndDate          DateTime

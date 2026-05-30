@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function signup(data: any) {
-  const { name, email, username, password } = data;
+  const { name, email, phone, username, password } = data;
 
   try {
     // 1. Check if tenant or user already exists
@@ -25,6 +25,7 @@ export async function signup(data: any) {
         data: {
           name,
           email,
+          phone,
           passwordHash: hashedPassword, // Store for recovery or reference
           trialEndDate,
           isSubscribed: false,
