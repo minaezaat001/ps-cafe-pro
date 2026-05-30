@@ -9,12 +9,12 @@ export async function requireAuthUser(): Promise<AuthUser> {
 }
 
 export function requireAdmin(user: AuthUser): void {
-  if (user.role !== "ADMIN") throw new Error("Unauthorized");
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") throw new Error("Unauthorized");
 }
 
-/** ADMIN bypasses permission checks (full access). */
+/** ADMIN/SUPER_ADMIN bypasses permission checks (full access). */
 export function requirePermission(user: AuthUser, permission: string): void {
-  if (user.role === "ADMIN") return;
+  if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") return;
   const perms = user.permissions ?? [];
   if (!perms.includes(permission)) {
     throw new Error("Forbidden: insufficient permissions");

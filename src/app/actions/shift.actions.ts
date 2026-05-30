@@ -90,7 +90,7 @@ export async function getActiveShift() {
 
 export async function calculateShiftSummary(shiftId: string) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("shift.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("shift.manage")) {
     throw new Error("Forbidden");
   }
   try {
@@ -104,7 +104,7 @@ export async function calculateShiftSummary(shiftId: string) {
 /** Same as calculateShiftSummary but returns null if user lacks shift.manage (e.g. dashboard banner). */
 export async function tryCalculateShiftSummary(shiftId: string) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("shift.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("shift.manage")) {
     return null;
   }
   try {
@@ -172,7 +172,7 @@ export async function closeShift(
 
 export async function getShiftHistory(limit: number = 20) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("shift.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("shift.manage")) {
     return [];
   }
 
@@ -202,7 +202,7 @@ export async function getShiftHistory(limit: number = 20) {
 export async function getDashboardData() {
   try {
     const user = await requireAuthUser();
-    if (user.role !== "ADMIN" && !user.permissions?.includes("dashboard.manage")) {
+    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("dashboard.manage")) {
       throw new Error("Forbidden");
     }
 
@@ -409,7 +409,7 @@ export async function getDashboardData() {
 
 export async function getReportData(startDate: Date, endDate: Date) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("reports.view")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("reports.view")) {
     throw new Error("Forbidden");
   }
 
@@ -481,7 +481,7 @@ export async function getReportData(startDate: Date, endDate: Date) {
 export async function getAdvancedPerformanceMetrics() {
   try {
     const user = await requireAuthUser();
-    if (user.role !== "ADMIN" && !user.permissions?.includes("reports.view")) {
+    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("reports.view")) {
       return null;
     }
 
@@ -626,7 +626,7 @@ export async function getShiftItemsBreakdown(shiftId: string): Promise<{
   totalAmount: number;
 }> {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("shift.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("shift.manage")) {
     throw new Error("Forbidden");
   }
 

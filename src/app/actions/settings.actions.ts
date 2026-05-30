@@ -11,7 +11,7 @@ import { requireAdminAsync, requireAuthUser } from "@/lib/action-guards";
 
 function requireSettingsAccess() {
   return requireAuthUser().then((user) => {
-    if (user.role !== "ADMIN" && !user.permissions?.includes("settings.manage")) {
+    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("settings.manage")) {
       throw new Error("Forbidden");
     }
     return user;
@@ -260,7 +260,7 @@ export async function updateTenantSettings(data: {
 
 export async function getUsers() {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("staff.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("staff.manage")) {
     throw new Error("Forbidden");
   }
   return prisma.user.findMany({
@@ -378,7 +378,7 @@ export async function getAuditLogs(filters?: {
   userId?: string;
 }) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("settings.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("settings.manage")) {
     throw new Error("Forbidden");
   }
 

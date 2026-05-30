@@ -20,7 +20,7 @@ export type DevicesSnapshotResult =
 export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotResult> {
   try {
     const user = await requireAuthUser();
-    if (user.role !== "ADMIN" && !user.permissions?.includes("dashboard.manage")) {
+    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("dashboard.manage")) {
       return { success: false, error: "Forbidden" };
     }
 

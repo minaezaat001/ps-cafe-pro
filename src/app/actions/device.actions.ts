@@ -60,7 +60,7 @@ export async function downloadDatabase() {
 
 export async function getDeviceTypes() {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
     const p = user.permissions ?? [];
     if (!p.includes("devices.manage") && !p.includes("dashboard.manage")) {
       throw new Error("Forbidden");

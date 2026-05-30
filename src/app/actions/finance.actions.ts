@@ -78,7 +78,7 @@ export async function addFinancialTransaction(data: {
 
 export async function getFinancialTransactions(startDate?: Date, endDate?: Date) {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("finance.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("finance.manage")) {
     throw new Error("Forbidden");
   }
 

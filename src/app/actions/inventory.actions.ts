@@ -10,7 +10,7 @@ import { InventoryItemSchema, InventoryUpdateSchema, OrderItemSchema, CartSchema
 
 export async function getInventory() {
   const user = await requireAuthUser();
-  if (user.role !== "ADMIN" && !user.permissions?.includes("inventory.manage")) {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !user.permissions?.includes("inventory.manage")) {
     throw new Error("Forbidden");
   }
 
