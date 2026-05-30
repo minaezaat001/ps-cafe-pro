@@ -26,11 +26,7 @@ export async function addFinancialTransaction(data: {
     if (!hasExpensePermission) {
       throw new Error("You don't have permission to add expense transactions. Contact your admin.");
     }
-    
-    // Require mandatory justification for expenses
-    if (!data.reason || data.reason.trim().length < 10) {
-      throw new Error("Expense transactions require a detailed justification (minimum 10 characters)");
-    }
+
   }
 
   const tenantId = (await getJwtTenantId()) || null;
