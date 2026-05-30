@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, CreditCard, Sparkles, X, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLang } from '@/lib/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ export function TrialStatus() {
   const [status, setStatus] = useState<any>(null);
   const [dismissed, setDismissed] = useState(false);
   const { isRTL } = useLang();
+  const router = useRouter();
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -87,6 +89,7 @@ export function TrialStatus() {
 
             <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
               <button
+                onClick={() => router.push('/pricing')}
                 className={cn(
                   "flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95",
                   isExpired 
