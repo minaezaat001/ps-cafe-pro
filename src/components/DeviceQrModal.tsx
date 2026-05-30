@@ -36,11 +36,11 @@ export function DeviceQrModal({ open, onClose, menuUrl, deviceLabel, isRTL }: Pr
           transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
           className={cn(
             "relative z-10 w-full max-w-sm rounded-2xl border border-border bg-card/95 p-6 shadow-2xl",
-            isRTL && "text-right"
+
           )}
           dir={isRTL ? "rtl" : "ltr"}
         >
-          <div className={cn("mb-4 flex items-center justify-between gap-3", isRTL && "flex-row-reverse")}>
+          <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-black text-foreground">
                 {isRTL ? "منيو العميل (QR)" : "Customer menu (QR)"}

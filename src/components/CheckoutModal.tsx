@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import ModalShell from "@/components/ui/ModalShell";
 import { cn } from '@/lib/utils';
 
 export interface CheckoutModalProps {
@@ -48,46 +48,33 @@ export default function CheckoutModal({
   printChecked,
   setPrintChecked,
 }: CheckoutModalProps) {
-  if (!isOpen) return null;
-
   const isTimeUp = session?.type === 'FIXED' && remainingLabel === t('device.timeUp');
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}
-        onClick={() => {
-          if (!isTimeUp && !isPending) {
-            onClose();
-          }
-        }}
-        className="absolute inset-0 bg-black/80 backdrop-blur-lg" />
-      <motion.div initial={{ scale: 0.98, opacity: 0, y: 6 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 6 }}
-        transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
-        className="glass-card w-full max-w-md p-6 sm:p-8 rounded-2xl relative z-[10000] border-t-4 max-h-[90vh] overflow-y-auto scrollbar-hide"
-        style={{ borderTopColor: accent.hex, boxShadow: `0 20px 50px -12px ${accent.hex}33` }}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        <div className={cn('flex justify-between items-center mb-6', isRTL && 'flex-row-reverse')}>
-          <div className={isRTL ? 'text-right' : ''}>
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      accentColor={accent.border}
+      maxWidth="max-w-md"
+      preventClose={isTimeUp}
+    >
+      <div dir={isRTL ? 'rtl' : 'ltr'} className="max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <div className="flex justify-between items-center mb-6">
+          <div>
             <h2 className="text-xl font-black text-foreground">
               {t('device.checkoutSettlement')} <span style={{ color: accent.hex }}>#{device.number}</span>
             </h2>
             <p className="text-[13px] text-muted-foreground mt-0.5">{t('device.finalizingDevice')}{device.number}</p>
           </div>
-          {!isTimeUp && (
-            <button onClick={onClose} className="p-2 hover:bg-muted rounded-xl transition text-muted-foreground">
-              <X className="w-5 h-5" />
-            </button>
-          )}
         </div>
 
-        <div className={cn("space-y-4 mb-6", isRTL && "text-right")}>
+        <div className="space-y-4 mb-6">
           <div className="grid grid-cols-2 gap-3">
             <div className="p-4 rounded-xl bg-card border border-border">
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.duration')}</p>
               <p className="text-lg font-black text-foreground font-mono">{elapsed}</p>
             </div>
-            <div className={cn('p-4 rounded-xl bg-card border border-border', isRTL ? 'text-left' : 'text-right')}>
+            <div className={cn('p-4 rounded-xl bg-card border border-border', 'text-end')}>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.mode')}</p>
               <p className={cn("text-lg font-black", accent.text)}>
                 {session?.isMulti ? t('device.multi') : t('device.single')}
@@ -127,7 +114,7 @@ export default function CheckoutModal({
             <div>
               <span className="text-[13px] text-muted-foreground font-bold uppercase tracking-widest block mb-2">{t('device.orderItems')}</span>
               {session && (session.orders || []).length > 0 ? (
-                <div className="space-y-1 max-h-28 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-28 overflow-y-auto pe-1">
                   {session.orders.map((o: any, idx: number) => (
                     <div key={idx} className="flex justify-between items-center text-base text-foreground/90 group">
                       <div className="flex items-center gap-2">
@@ -155,9 +142,9 @@ export default function CheckoutModal({
             </div>
           </div>
 
-          <div className={cn("pt-4 border-t-2 border-dashed border-border", isRTL ? "text-right" : "text-left")}>
+          <div className={cn("pt-4 border-t-2 border-dashed border-border", "text-start")}>
             <p className="text-[13px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.totalToCollect')}</p>
-            <div className={cn("text-4xl font-black tracking-tighter", accent.text, isRTL ? "flex flex-row-reverse justify-start" : "flex justify-start")}>
+            <div className={cn("text-4xl font-black tracking-tighter flex justify-start", accent.text)}>
               <span className="text-base mt-auto mb-1 mx-1 text-muted-foreground">EGP</span>
               {total}
             </div>
@@ -165,7 +152,7 @@ export default function CheckoutModal({
         </div>
 
         {printSettings.enabled && (
-          <div className={cn("mb-4 flex items-center gap-3", isRTL && "flex-row-reverse")}>
+          <div className="mb-4 flex items-center gap-3">
             <input type="checkbox" id="print-invoice-cb" checked={printChecked} onChange={(e) => setPrintChecked(e.target.checked)} className="w-5 h-5 rounded border-border text-blue-500 focus:ring-blue-500 cursor-pointer" />
             <label htmlFor="print-invoice-cb" className="font-bold text-sm text-foreground cursor-pointer select-none">
               {isRTL ? "طباعة الفاتورة" : "Print Invoice"}
@@ -186,7 +173,7 @@ export default function CheckoutModal({
             {isPending ? t('device.finishing') : isTimeUp ? t('common.close') : t('device.collectEnd')}
           </button>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
 }

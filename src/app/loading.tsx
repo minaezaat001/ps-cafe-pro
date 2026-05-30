@@ -9,7 +9,7 @@ export default function LoadingDashboard() {
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <section>
-        <div className={`mb-6 ${isRTL ? 'text-right' : 'text-left'}`}>
+        <div className="mb-6 text-start">
           <div className="h-8 w-48 bg-card rounded animate-pulse mb-2"></div>
           <div className="h-4 w-64 bg-card rounded animate-pulse"></div>
         </div>

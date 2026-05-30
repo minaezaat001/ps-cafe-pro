@@ -104,7 +104,7 @@ export default function TenantSettings() {
           <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
             <Globe className="w-4 h-4 text-blue-400" strokeWidth={2} />
           </div>
-          <div className={isRTL ? 'text-right' : ''}>
+          <div>
             <h3 className="text-sm font-bold tracking-wide uppercase text-blue-400">
               {isRTL ? 'العملة والرمز' : 'Currency & Symbol'}
             </h3>
@@ -116,13 +116,13 @@ export default function TenantSettings() {
         
         <div className="space-y-4">
           <div>
-            <label className={`text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ${isRTL ? 'text-right' : ''}`}>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
               {isRTL ? 'العملة' : 'Currency'}
             </label>
             <select
               value={settings.currency}
               onChange={(e) => handleCurrencyChange(e.target.value)}
-              className={`w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all ${isRTL ? 'text-right' : ''}`}
+              className="w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               {currencies.map(c => (
@@ -132,7 +132,7 @@ export default function TenantSettings() {
           </div>
           
           <div>
-            <label className={`text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ${isRTL ? 'text-right' : ''}`}>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
               {isRTL ? 'رمز العملة' : 'Currency Symbol'}
             </label>
             <input
@@ -152,7 +152,7 @@ export default function TenantSettings() {
           <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
             <CalendarDays className="w-4 h-4 text-purple-400" strokeWidth={2} />
           </div>
-          <div className={isRTL ? 'text-right' : ''}>
+          <div>
             <h3 className="text-sm font-bold tracking-wide uppercase text-purple-400">
               {isRTL ? 'المنطقة الزمنية' : 'Timezone'}
             </h3>
@@ -163,13 +163,13 @@ export default function TenantSettings() {
         </div>
         
         <div>
-          <label className={`text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ${isRTL ? 'text-right' : ''}`}>
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
             {isRTL ? 'المنطقة الزمنية' : 'Timezone'}
           </label>
           <select
             value={settings.timezone}
             onChange={(e) => setSettings(prev => ({ ...prev, timezone: e.target.value }))}
-            className={`w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all ${isRTL ? 'text-right' : ''}`}
+            className="w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             {timezones.map(tz => (

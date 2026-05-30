@@ -50,7 +50,7 @@ export function TrialStatus() {
           {/* Subtle glow effect behind */}
           <div className={cn(
             "absolute top-0 w-[500px] h-full blur-3xl opacity-20 pointer-events-none",
-            isRTL ? "right-0" : "left-0",
+            "start-0",
             isExpired ? "bg-rose-500" : "bg-amber-500"
           )} />
 

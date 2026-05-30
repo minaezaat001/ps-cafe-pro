@@ -1,12 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { LayoutGrid, List, AlertTriangle } from "lucide-react";
+import { LayoutGrid, List } from "lucide-react";
+import AlertBanner from "@/components/ui/AlertBanner";
 import { useLang } from "@/lib/LanguageContext";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getDevicesSnapshotForDashboard } from "@/app/actions";
 import type { DashboardDeviceSnapshot } from "@/lib/dashboard-serialize";
-import Link from "next/link";
 import { DeviceSkeleton } from "@/components/ui/DeviceSkeleton";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
@@ -102,36 +102,22 @@ export default function DashboardClient({
   return (
     <div className="space-y-8" dir={isRTL ? "rtl" : "ltr"}>
       {!activeShift && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
-            </div>
-            <div className={isRTL ? "text-right" : "text-left"}>
-              <h3 className="text-red-400 font-bold">
-                {isRTL ? "لا توجد وردية مفتوحة!" : "No Active Shift!"}
-              </h3>
-              <p className="text-xs text-red-400/80 mt-0.5">
-                {isRTL
-                  ? "أنت بحاجة لفتح وردية الكاشير الآن لتتمكن من بدء الجلسات وطلبات الكافيتريا."
-                  : "You must log a shift to start device sessions and process operations."}
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/shift"
-            className="px-5 py-2.5 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors whitespace-nowrap text-sm h-fit"
-          >
-            {isRTL ? "فتح وردية جديدة" : "Open Current Shift"}
-          </Link>
-        </div>
+        <AlertBanner
+          variant="danger"
+          title={isRTL ? "لا توجد وردية مفتوحة!" : "No Active Shift!"}
+          description={isRTL
+            ? "أنت بحاجة لفتح وردية الكاشير الآن لتتمكن من بدء الجلسات وطلبات الكافيتريا."
+            : "You must log a shift to start device sessions and process operations."}
+          actionLabel={isRTL ? "فتح وردية جديدة" : "Open Current Shift"}
+          actionHref="/shift"
+        />
       )}
 
       <section>
         <div
           className="mb-6 flex justify-between items-end"
         >
-          <div className={isRTL ? "text-right" : "text-left"}>
+          <div className="text-start">
             <h2 className="text-2xl font-black tracking-tight text-foreground mb-1">
               {t("dashboard.realTimePanel")}
             </h2>

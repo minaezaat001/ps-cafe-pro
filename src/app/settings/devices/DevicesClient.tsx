@@ -187,7 +187,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className={cn('flex flex-col md:flex-row justify-between items-start md:items-center gap-4', isRTL && 'md:flex-row-reverse')}>
-        <div className={isRTL ? 'text-right' : ''}>
+        <div>
           <h2 className="text-2xl font-black text-foreground mb-1">
             {t('devices.title')} <span className="text-blue-400">{t('devices.titleAccent')}</span>
           </h2>
@@ -396,7 +396,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                   
                   {/* Existing Types */}
                   <div>
-                    <div className={cn("flex items-center gap-2 mb-4", isRTL && "flex-row-reverse")}>
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-1.5 h-5 rounded-full bg-indigo-500" />
                       <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.15em]">
                         {isRTL ? 'الأنواع الحالية' : 'Current Types'}
@@ -406,7 +406,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                         color: isLight ? '#4338ca' : '#818cf8'
                       }}>{deviceTypes?.length || 0}</span>
                     </div>
-                    <div className="space-y-2 max-h-[25vh] overflow-y-auto scrollbar-hide pr-1">
+                    <div className="space-y-2 max-h-[25vh] overflow-y-auto scrollbar-hide pe-1">
                       {deviceTypes?.map((t: any) => {
                         const typeColor = colorHex[t.color] || '#3b82f6';
                         const TypeIcon = ICONS.find(i => i.name === t.icon)?.icon || Gamepad2;
@@ -415,7 +415,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                             key={t.id} 
                             className={cn(
                               "flex justify-between items-center p-4 rounded-2xl border transition-colors duration-200 group relative overflow-hidden",
-                              isRTL && "flex-row-reverse",
+    
                               editingTypeId === t.id 
                                 ? "border-indigo-500/50 shadow-lg" 
                                 : "border-border hover:border-border"
@@ -429,9 +429,9 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                             {/* Color accent bar */}
                             <div className="absolute top-0 bottom-0 w-1 rounded-full" style={{ 
                               background: typeColor,
-                              [isRTL ? 'right' : 'left']: '0px'
+                              insetInlineStart: '0px'
                             }} />
-                            <div className={cn("flex items-center gap-3 min-w-0 flex-1", isRTL ? 'mr-3' : 'ml-3')}>
+                            <div className={cn("flex items-center gap-3 min-w-0 flex-1", 'ms-3')}>
                               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ 
                                 background: `${typeColor}15`,
                                 border: `1px solid ${typeColor}30`,
@@ -470,7 +470,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
 
                   {/* ── Add / Edit Form ────────────────── */}
                   <form onSubmit={handleAddType} className="space-y-5 pt-5 border-t border-border">
-                    <div className={cn("flex items-center gap-2 mb-1", isRTL && "flex-row-reverse")}>
+                    <div className="flex items-center gap-2 mb-1">
                       <div className="w-1.5 h-5 rounded-full bg-blue-500" />
                       <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.15em]">
                         {editingTypeId ? (isRTL ? 'تعديل النوع' : 'Edit Type') : (isRTL ? 'نوع جديد' : 'New Type')}

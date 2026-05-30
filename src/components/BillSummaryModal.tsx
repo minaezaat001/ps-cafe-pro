@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import ModalShell from "@/components/ui/ModalShell";
 import { cn } from '@/lib/utils';
 
 export interface BillSummaryModalProps {
@@ -34,26 +34,18 @@ export default function BillSummaryModal({
   confirmDeleteId,
   setConfirmDeleteId,
 }: BillSummaryModalProps) {
-  if (!isOpen) return null;
-
+  if (!isOpen || !session) return null;
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-      <motion.div initial={{ scale: 0.98, opacity: 0, y: 6 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 6 }} transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
-        className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-[10000] border-t-4"
-        style={{ borderTopColor: accent.hex, boxShadow: `0 20px 50px -12px ${accent.hex}33` }}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        <div className={cn('flex justify-between items-center mb-6', isRTL ? 'flex-row-reverse' : 'flex-row')}>
-          <h2 className="text-xl font-black text-foreground">{t('device.billSummary')}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-muted rounded-xl text-muted-foreground">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      accentColor={accent.border}
+      maxWidth="max-w-sm"
+      title={t('device.billSummary')}
+    >
+      <div dir={isRTL ? 'rtl' : 'ltr'}>
 
-        <div className={cn("max-h-[60vh] overflow-y-auto", isRTL && "text-right")}>
+          <div className="max-h-[60vh] overflow-y-auto">
           <div className="flex justify-between text-base pb-3 border-b border-border">
             <span className="text-muted-foreground text-sm font-bold uppercase">{t('device.station')}</span>
             <span className="font-black" style={{ color: accent.hex }}>#{device.number} ({device.type})</span>
@@ -67,7 +59,7 @@ export default function BillSummaryModal({
             {billBreakdown.segments && billBreakdown.segments.length > 0 ? (
               <div className="space-y-2">
                 {billBreakdown.segments.map((seg: any, idx: number) => (
-                  <div key={idx} className={cn("flex justify-between text-sm items-center", isRTL && "flex-row-reverse")}>
+                  <div key={idx} className="flex justify-between text-sm items-center">
                     <span className="text-muted-foreground font-bold uppercase">
                       {t('device.account')} {seg.deviceType} ({seg.mode === 'SINGLE' ? t('device.single') : t('device.multi')})
                     </span>
@@ -78,7 +70,7 @@ export default function BillSummaryModal({
             ) : billBreakdown.single > 0 || billBreakdown.multi > 0 ? (
               <div className="space-y-2">
                 {billBreakdown.single > 0 && (
-                  <div className={cn("flex justify-between text-sm items-center", isRTL && "flex-row-reverse")}>
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-muted-foreground font-bold uppercase">
                       {t('device.account')} {device.type} ({t('device.single')})
                     </span>
@@ -86,7 +78,7 @@ export default function BillSummaryModal({
                   </div>
                 )}
                 {billBreakdown.multi > 0 && (
-                  <div className={cn("flex justify-between text-sm items-center", isRTL && "flex-row-reverse")}>
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-muted-foreground font-bold uppercase">
                       {t('device.account')} {device.type} ({t('device.multi')})
                     </span>
@@ -100,7 +92,7 @@ export default function BillSummaryModal({
           <div>
             <span className="text-muted-foreground text-sm font-bold uppercase block mb-2">{t('device.consumables')}</span>
             {session && session.orders?.length > 0 ? (
-              <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-36 overflow-y-auto pe-1">
                 {session.orders.map((o: any, i: number) => (
                   <div key={i} className="flex justify-between items-center text-base group">
                     <div className="flex items-center gap-2 items-center">
@@ -128,9 +120,9 @@ export default function BillSummaryModal({
           </div>
         </div>
 
-        <div className={cn("pt-4 border-t-2 border-dashed border-border mb-2 mt-4", isRTL ? "text-right" : "text-left")}>
+        <div className={cn("pt-4 border-t-2 border-dashed border-border mb-2 mt-4", "text-start")}>
           <p className="text-[13px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{t('device.grandTotal')}</p>
-          <div className={cn("text-3xl font-black tracking-tighter text-foreground items-center", isRTL ? "flex flex-row-reverse justify-end" : "flex justify-start")}>
+          <div className={cn("text-3xl font-black tracking-tighter text-foreground items-center flex justify-start")}>
             <span className="text-base mx-1 mt-auto mb-1" style={{ color: accent.hex }}>EGP</span>
             {total}
           </div>
@@ -140,7 +132,7 @@ export default function BillSummaryModal({
           className="w-full py-3 rounded-xl border border-border text-muted-foreground font-bold hover:bg-muted transition-all mt-4">
           {t('device.closeView')}
         </button>
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
 }

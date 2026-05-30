@@ -35,10 +35,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useKeyPress } from "@/lib/useKeyPress";
 import TenantSettings from "@/components/TenantSettings";
+import { cn } from "@/lib/utils";
 
 type TabId = 'print' | 'data' | 'general';
-
-const cn = (...inputs: any[]) => inputs.filter(Boolean).join(' ');
 
 // ═══════════════════════════════════════════════════════
 // TOGGLE COMPONENT
@@ -200,7 +199,7 @@ const PaperSizeSelector = ({
               <div className="text-[10px] text-muted-foreground mt-0.5">{opt.sublabel}</div>
             </div>
             {isActive && (
-              <div className={cn("absolute top-2 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center", isRTL ? 'left-2' : 'right-2')}>
+              <div className={cn("absolute top-2 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center", 'end-2')}>
                 <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             )}
@@ -243,7 +242,7 @@ const DangerCard = ({
       <div className={cn('w-10 h-10 rounded-xl border flex items-center justify-center shrink-0', c.icon)}>
         <Icon className="w-5 h-5" strokeWidth={1.75} />
       </div>
-      <div className={cn('flex-1 min-w-0', isRTL && 'text-right')}>
+      <div className={cn('flex-1 min-w-0')}>
         <h4 className="text-sm font-bold text-foreground mb-1">{title}</h4>
         <p className="text-xs text-muted-foreground leading-relaxed mb-4">{description}</p>
         <button
@@ -438,7 +437,7 @@ export default function SettingsClient() {
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center shadow-lg">
             <Settings className="w-5 h-5 text-blue-400" strokeWidth={1.75} />
           </div>
-          <div className={isRTL ? 'text-right' : ''}>
+          <div>
             <h1 className="text-xl font-black tracking-tight text-foreground">
               {isRTL ? 'إعدادات النظام' : 'System'}{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
@@ -466,7 +465,7 @@ export default function SettingsClient() {
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold relative group',
-                    isRTL ? 'text-right' : 'text-left',
+                    'text-start',
                     isActive
                       ? 'bg-blue-500/15 text-blue-400 border border-blue-500/25 shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
@@ -477,7 +476,7 @@ export default function SettingsClient() {
                     <span
                       className={cn(
                         'absolute top-2 bottom-2 w-0.5 rounded-full bg-blue-400',
-                        isRTL ? 'right-0' : 'left-0'
+                        'start-0'
                       )}
                     />
                   )}
@@ -534,7 +533,7 @@ export default function SettingsClient() {
                     )}>
                       <Printer className={cn('w-7 h-7 transition-colors', printSettings.enabled ? 'text-blue-400' : 'text-muted-foreground/50')} strokeWidth={1.5} />
                     </div>
-                    <div className={cn('flex-1', isRTL && 'text-right')}>
+                    <div className={cn('flex-1')}>
                       <h3 className="text-base font-bold text-foreground">
                         {isRTL ? 'نظام الطباعة' : 'Printing System'}
                       </h3>
@@ -582,7 +581,7 @@ export default function SettingsClient() {
 
                         {/* Printer Name Dropdown */}
                         <div>
-                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block', isRTL && 'text-right')}>
+                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block')}>
                             {isRTL ? 'اسم الطابعة' : 'Printer Name'}
                           </label>
                           <select
@@ -590,8 +589,7 @@ export default function SettingsClient() {
                             onChange={(e) => updatePrintSettings({ printerName: e.target.value })}
                             className={cn(
                               'w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium',
-                              'focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all',
-                              isRTL && 'text-right'
+                              'focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all'
                             )}
                             dir={isRTL ? 'rtl' : 'ltr'}
                           >
@@ -600,7 +598,7 @@ export default function SettingsClient() {
                               <option key={p} value={p}>{p}</option>
                             ))}
                           </select>
-                          <p className={cn('text-[10px] text-muted-foreground/60 mt-2', isRTL && 'text-right')}>
+                          <p className={cn('text-[10px] text-muted-foreground/60 mt-2')}>
                             {isRTL
                               ? 'إذا تركت الحقل فارغاً سيستخدم النظام الطابعة الافتراضية'
                               : 'Leave blank to use the OS default printer'}
@@ -609,7 +607,7 @@ export default function SettingsClient() {
 
                         {/* Copies */}
                         <div>
-                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block', isRTL && 'text-right')}>
+                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block')}>
                             {isRTL ? 'عدد النسخ' : 'Number of Copies'}
                           </label>
                           <div className={cn('flex items-center gap-3')}>
@@ -635,7 +633,7 @@ export default function SettingsClient() {
                             onChange={(v) => updatePrintSettings({ autoPrint: v })}
                             color="purple"
                           />
-                          <div className={cn('flex-1', isRTL && 'text-right')}>
+                          <div className={cn('flex-1')}>
                             <p className="text-sm font-semibold text-foreground">
                               {isRTL ? 'طباعة تلقائية عند الإنهاء' : 'Auto-Print on Checkout'}
                             </p>
@@ -659,7 +657,7 @@ export default function SettingsClient() {
 
                         {/* Header Text */}
                         <div>
-                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block', isRTL && 'text-right')}>
+                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block')}>
                             {isRTL ? 'نص رأس الإيصال (اسم المقهى)' : 'Receipt Header (Cafe Name)'}
                           </label>
                           <input
@@ -669,8 +667,7 @@ export default function SettingsClient() {
                             placeholder={isRTL ? 'اسم مقهاك هنا...' : 'Your cafe name here...'}
                             className={cn(
                               'w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium placeholder:text-muted-foreground/40',
-                              'focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10 transition-all',
-                              isRTL && 'text-right'
+                              'focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10 transition-all'
                             )}
                             dir={isRTL ? 'rtl' : 'ltr'}
                           />
@@ -678,7 +675,7 @@ export default function SettingsClient() {
 
                         {/* Footer Text */}
                         <div>
-                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block', isRTL && 'text-right')}>
+                          <label className={cn('text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block')}>
                             {isRTL ? 'نص تذييل الإيصال' : 'Receipt Footer'}
                           </label>
                           <input
@@ -688,12 +685,11 @@ export default function SettingsClient() {
                             placeholder={isRTL ? 'رسالة شكر أو معلومات التواصل...' : 'Thank you message or contact info...'}
                             className={cn(
                               'w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium placeholder:text-muted-foreground/40',
-                              'focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10 transition-all',
-                              isRTL && 'text-right'
+                              'focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10 transition-all'
                             )}
                             dir={isRTL ? 'rtl' : 'ltr'}
                           />
-                          <p className={cn('text-[10px] text-muted-foreground/50 mt-1.5', isRTL && 'text-right')}>
+                          <p className={cn('text-[10px] text-muted-foreground/50 mt-1.5')}>
                             {isRTL ? 'مثال: شكراً لزيارتكم • 01234567890' : 'E.g. Thank you • Call us: 01234567890'}
                           </p>
                         </div>
@@ -705,7 +701,7 @@ export default function SettingsClient() {
                             onChange={(v) => updatePrintSettings({ showLogo: v })}
                             color="emerald"
                           />
-                          <div className={cn('flex-1', isRTL && 'text-right')}>
+                          <div className={cn('flex-1')}>
                             <p className="text-sm font-semibold text-foreground">
                               {isRTL ? 'إظهار اسم النظام في الرأس' : 'Show System Name in Header'}
                             </p>
@@ -786,7 +782,7 @@ export default function SettingsClient() {
                   {/* Warning Banner */}
                   <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/8 border border-amber-500/20">
                     <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" strokeWidth={1.75} />
-                    <div className={cn(isRTL && 'text-right')}>
+                    <div>
                       <p className="text-sm font-bold text-amber-400">
                         {isRTL ? 'منطقة الإجراءات الحساسة' : 'Sensitive Operations Zone'}
                       </p>
@@ -933,7 +929,7 @@ export default function SettingsClient() {
 
               <button
                 onClick={() => !isPending && setConfirmModal(null)}
-                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors", isRTL ? 'left-4' : 'right-4')}
+                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors", 'end-4')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1008,7 +1004,7 @@ export default function SettingsClient() {
               <div className="absolute top-0 inset-x-0 h-1 rounded-t-3xl bg-teal-500" />
               <button
                 onClick={() => !isPending && setBackupModal(false)}
-                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground", isRTL ? 'left-4' : 'right-4')}
+                className={cn("absolute top-4 w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground", 'end-4')}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1017,7 +1013,7 @@ export default function SettingsClient() {
                 <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
                   <Save className="w-5 h-5 text-teal-400" />
                 </div>
-                <div className={isRTL ? 'text-right' : ''}>
+                <div>
                   <h2 className="text-lg font-black text-foreground">{isRTL ? 'تصدير نسخة احتياطية' : 'Export Backup'}</h2>
                   <p className="text-xs text-muted-foreground">{isRTL ? 'اختر البيانات التي تريد تضمينها' : 'Select which data to include'}</p>
                 </div>

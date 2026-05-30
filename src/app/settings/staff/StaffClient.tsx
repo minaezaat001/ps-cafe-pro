@@ -123,7 +123,7 @@ export default function StaffClient({ users }: StaffClientProps) {
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className={cn('flex flex-col md:flex-row justify-between items-start md:items-center gap-4', isRTL && 'md:flex-row-reverse')}>
-        <div className={isRTL ? 'text-right' : ''}>
+        <div>
           <h2 className="text-2xl font-black text-foreground mb-1">
             {t('staff.title')} <span className="text-violet-400">{t('staff.titleAccent')}</span>
           </h2>
@@ -156,7 +156,7 @@ export default function StaffClient({ users }: StaffClientProps) {
                   )}>
                     <User className="w-6 h-6" />
                   </div>
-                  <div className={isRTL ? 'text-right' : ''}>
+                  <div>
                     <h3 className="text-xl font-black text-foreground tracking-tight">{user.username}</h3>
                     <div className={cn(
                       'mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest inline-flex items-center gap-1 uppercase border',
@@ -225,12 +225,12 @@ export default function StaffClient({ users }: StaffClientProps) {
                   <div className="space-y-2">
                     <label className="text-[11px] text-muted-foreground font-black uppercase tracking-widest">{isRTL ? 'اسم الدخول' : 'Username'}</label>
                     <div className="relative">
-                      <User className={cn("w-4 h-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 z-10", isRTL ? 'right-4' : 'left-4')} />
+                      <User className={cn("w-4 h-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 z-10", 'start-4')} />
                       <input type="text" required placeholder="johndoe" value={formData.username}
                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         className={cn(
                           "bg-card w-full rounded-2xl py-3 border border-border outline-none transition-colors focus:border-violet-500/50 text-sm font-bold placeholder:text-muted-foreground/30",
-                          isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'
+                          'ps-11 pe-4'
                         )} />
                     </div>
                   </div>
@@ -238,12 +238,12 @@ export default function StaffClient({ users }: StaffClientProps) {
                   <div className="space-y-2">
                     <label className="text-[11px] text-muted-foreground font-black uppercase tracking-widest">{isRTL ? 'الرقم السري' : 'Password'}</label>
                     <div className="relative">
-                      <Key className={cn("w-4 h-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 z-10", isRTL ? 'right-4' : 'left-4')} />
+                      <Key className={cn("w-4 h-4 text-muted-foreground absolute top-1/2 -translate-y-1/2 z-10", 'start-4')} />
                       <input type="text" required={!editingUser} placeholder={editingUser ? '••••••••' : 'password'} value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className={cn(
                           "bg-card w-full rounded-2xl py-3 border border-border outline-none transition-colors focus:border-violet-500/50 text-sm font-bold placeholder:text-muted-foreground/30",
-                          isRTL ? 'pr-11 pl-4' : 'pl-11 pr-4'
+                          'ps-11 pe-4'
                         )} />
                     </div>
                     {editingUser && <p className="text-[10px] text-muted-foreground mt-1 px-1">↳ {isRTL ? 'اتركها فارغة إذا لم ترد التغيير' : 'Leave empty to keep existing password'}</p>}
@@ -295,7 +295,7 @@ export default function StaffClient({ users }: StaffClientProps) {
                       <div key={p.id} onClick={() => !isDisabled && handleTogglePermission(p.id)}
                         className={cn(
                           "group relative flex items-center justify-between p-4 rounded-3xl border transition-all cursor-pointer select-none overflow-hidden",
-                          isRTL && "flex-row-reverse",
+
                           isOn 
                             ? "bg-card border-violet-500/30 shadow-[0_4px_20px_-10px_rgba(139,92,246,0.15)]" 
                             : "bg-muted/30 border-border/50 hover:bg-muted/60 opacity-80",
@@ -307,7 +307,7 @@ export default function StaffClient({ users }: StaffClientProps) {
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
                         )}
 
-                        <div className={cn("flex flex-col relative z-10", isRTL ? "text-right mr-2" : "text-left ml-2")}>
+                        <div className={cn("flex flex-col relative z-10", "text-start ms-2")}>
                           <span className={cn("font-bold text-[15px] transition-colors", isOn ? "text-foreground" : "text-muted-foreground")}>
                             {lang === 'ar' ? p.labelAr : p.labelEn}
                           </span>

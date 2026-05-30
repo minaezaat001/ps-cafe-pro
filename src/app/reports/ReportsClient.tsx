@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Clock, Package, Filter, FileText, X, Eye, Download, Printer, RefreshCw, Trash2 } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Clock, Package, Filter, FileText, Eye, Download, Printer, RefreshCw, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 // ── Lazy-load recharts — doesn't block initial page render ──
 const AreaChart = dynamic(() => import('recharts').then(m => ({ default: m.AreaChart })), { ssr: false });
@@ -19,9 +19,11 @@ import { useLang } from '@/lib/LanguageContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { calculateSessionTimeCost, getBillBreakdown } from '@/lib/billing';
 import { usePrintSettings } from '@/lib/usePrintSettings';
+import StatCard from "@/components/ui/StatCard";
 import { printReceiptSilently } from '@/lib/printUtils';
 import { useKeyPress } from '@/lib/useKeyPress';
 import { voidSale } from '../actions';
+import ModalShell from "@/components/ui/ModalShell";
 
 
 function cn(...inputs: any[]) { return inputs.filter(Boolean).join(' '); }
@@ -206,18 +208,18 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
   }, [filteredData]);
 
   const statCards = [
-    { label: isRTL ? 'صافي اليوم' : 'Net Balance', value: `${stats.totalRevenue.toFixed(2)} EGP`, icon: DollarSign, color: 'text-emerald-400', glow: 'glow-green' },
-    { label: isRTL ? 'إيراد الأجهزة' : 'Gaming Revenue', value: `${stats.gamingTimeRevenue.toFixed(2)} EGP`, icon: Clock, color: 'text-blue-400', glow: 'glow-blue' },
-    { label: isRTL ? 'إيراد الكافيتريا' : 'Cafeteria Revenue', value: `${stats.cafeteriaRevenue.toFixed(2)} EGP`, icon: Package, color: 'text-amber-400', glow: 'glow-amber' },
-    { label: isRTL ? 'مسحوبات' : 'Expenses', value: `-${stats.expenses.toFixed(2)} EGP`, icon: TrendingDown, color: 'text-rose-400', glow: 'glow-red' },
-    { label: isRTL ? 'إيداعات' : 'Income', value: `+${stats.income.toFixed(2)} EGP`, icon: TrendingUp, color: 'text-blue-400', glow: 'glow-blue' },
+    { label: isRTL ? 'صافي اليوم' : 'Net Balance', value: `${stats.totalRevenue.toFixed(2)} EGP`, icon: <DollarSign className="w-5 h-5" />, accentColor: 'bg-emerald-500', glowColor: 'glow-green' },
+    { label: isRTL ? 'إيراد الأجهزة' : 'Gaming Revenue', value: `${stats.gamingTimeRevenue.toFixed(2)} EGP`, icon: <Clock className="w-5 h-5" />, accentColor: 'bg-blue-500', glowColor: 'glow-blue' },
+    { label: isRTL ? 'إيراد الكافيتريا' : 'Cafeteria Revenue', value: `${stats.cafeteriaRevenue.toFixed(2)} EGP`, icon: <Package className="w-5 h-5" />, accentColor: 'bg-amber-500', glowColor: 'glow-amber' },
+    { label: isRTL ? 'مسحوبات' : 'Expenses', value: `-${stats.expenses.toFixed(2)} EGP`, icon: <TrendingDown className="w-5 h-5" />, accentColor: 'bg-red-500', glowColor: 'glow-red' },
+    { label: isRTL ? 'إيداعات' : 'Income', value: `+${stats.income.toFixed(2)} EGP`, icon: <TrendingUp className="w-5 h-5" />, accentColor: 'bg-blue-500', glowColor: 'glow-blue' },
   ];
 
   return (
     <div className="space-y-10" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-        <div className={isRTL ? 'text-right' : ''}>
+        <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-8 bg-blue-500 rounded-full" />
             <h2 className="text-3xl font-black text-foreground tracking-tight">
@@ -287,14 +289,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat, i) => (
-          <div key={i} className="glass-card p-6 rounded-2xl relative overflow-hidden group">
-            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110', stat.glow)}>
-              <stat.icon className={cn('w-5 h-5', stat.color)} />
-            </div>
-            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mb-1">{stat.label}</p>
-            <h3 className="text-xl font-black text-foreground">{stat.value}</h3>
-            <div className={cn('absolute -right-4 -bottom-4 w-16 h-16 blur-2xl rounded-full opacity-30', stat.glow)} />
-          </div>
+          <StatCard key={i} {...stat} />
         ))}
       </div>
 
@@ -315,7 +310,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                 <th className="px-6 py-4 font-bold">{t('reports.dateTime')}</th>
                 <th className="px-6 py-4 font-bold">{isRTL ? 'الموظف' : 'Staff'}</th>
                 <th className="px-6 py-4 font-bold">{t('reports.grandTotal')}</th>
-                <th className={cn('px-6 py-4 font-bold', isRTL ? 'text-left' : 'text-right')}>{t('reports.actions')}</th>
+                <th className="px-6 py-4 font-bold text-end">{t('reports.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -374,7 +369,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                           {item.type === 'EXPENSE' ? '-' : ''} {total.toFixed(2)} EGP
                         </span>
                       </td>
-                      <td className={cn('px-6 py-5', isRTL ? 'text-left' : 'text-right')}>
+                      <td className="px-6 py-5 text-end">
                         <button onClick={() => setSelectedInvoice({ ...item, actualTotal: total })}
                           className="px-3 py-1.5 rounded-xl bg-muted hover:bg-blue-500 text-muted-foreground hover:text-white text-[10px] font-black tracking-wide transition-all inline-flex items-center gap-1.5">
                           <Eye className="w-3 h-3" /> {isTransaction ? (isRTL ? 'عرض التفاصيل' : 'View Details') : t('reports.viewInvoice')}
@@ -389,26 +384,14 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
       </div>
 
       {/* Invoice Modal */}
-      <AnimatePresence>
-        {selectedInvoice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}
-              onClick={() => setSelectedInvoice(null)} className="absolute inset-0 bg-black/75 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.98, opacity: 0, y: 6 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 6 }}
-              transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
-              className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-10"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              <div className="flex justify-between items-center mb-7">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-blue-500/15 text-blue-400"><FileText className="w-5 h-5" /></div>
-                  <div className={isRTL ? 'text-right' : ''}>
-                    <h2 className="text-lg font-black text-foreground">{t('reports.invoice')}</h2>
-                    <p className="text-[10px] text-muted-foreground font-mono">#{selectedInvoice.id.slice(-8).toUpperCase()}</p>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedInvoice(null)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground"><X className="w-5 h-5" /></button>
-              </div>
+      <ModalShell isOpen={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} maxWidth="max-w-4xl">
+        <div className="flex items-center gap-3 mb-7">
+          <div className="p-3 rounded-xl bg-blue-500/15 text-blue-400"><FileText className="w-5 h-5" /></div>
+          <div>
+            <h2 className="text-lg font-black text-foreground">{t('reports.invoice')}</h2>
+            <p className="text-[10px] text-muted-foreground font-mono">#{selectedInvoice.id.slice(-8).toUpperCase()}</p>
+          </div>
+        </div>
 
               <div className="space-y-3 mb-6">
                 <div className={cn('flex justify-between text-xs pb-3 border-b border-border')}>
@@ -556,10 +539,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                   </p>
                 </div>
               )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </ModalShell>
     </div>
   );
 }

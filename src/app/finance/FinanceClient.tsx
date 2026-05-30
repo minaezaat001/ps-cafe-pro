@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { useKeyPress } from "@/lib/useKeyPress";
+import StatCard from "@/components/ui/StatCard";
 
 export default function FinanceClient({ initialTransactions, user }: { initialTransactions: any[], user: any }) {
   const { t, isRTL } = useLang();
@@ -117,31 +118,27 @@ export default function FinanceClient({ initialTransactions, user }: { initialTr
 
       {/* ── Stats Summary ───────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-3xl border-t-4 border-emerald-500/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <TrendingUp className="w-12 h-12 text-emerald-500" />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{isRTL ? "إجمالي الإيداعات" : "TOTAL INCOME"}</p>
-          <h3 className="text-2xl font-black text-emerald-400 font-mono">+{income.toFixed(2)} <span className="text-sm">EGP</span></h3>
-        </div>
-
-        <div className="glass-card p-6 rounded-3xl border-t-4 border-rose-500/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <TrendingDown className="w-12 h-12 text-rose-500" />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{isRTL ? "إجمالي المسحوبات" : "TOTAL EXPENSES"}</p>
-          <h3 className="text-2xl font-black text-rose-400 font-mono">-{expenses.toFixed(2)} <span className="text-sm">EGP</span></h3>
-        </div>
-
-        <div className="glass-card p-6 rounded-3xl border-t-4 border-blue-500/50 relative overflow-hidden group bg-gradient-to-br from-blue-500/5 to-transparent">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <Wallet className="w-12 h-12 text-blue-500" />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">{isRTL ? "صافي الخزينة" : "TREASURY BALANCE"}</p>
-          <h3 className={cn("text-2xl font-black font-mono", balance >= 0 ? "text-blue-400" : "text-rose-400")}>
-            {balance.toFixed(2)} <span className="text-sm">EGP</span>
-          </h3>
-        </div>
+        <StatCard
+          icon={<TrendingUp className="w-5 h-5" />}
+          label={isRTL ? "إجمالي الإيداعات" : "TOTAL INCOME"}
+          value={`+${income.toFixed(2)} EGP`}
+          accentColor="bg-emerald-500"
+          glowColor="glow-green"
+        />
+        <StatCard
+          icon={<TrendingDown className="w-5 h-5" />}
+          label={isRTL ? "إجمالي المسحوبات" : "TOTAL EXPENSES"}
+          value={`-${expenses.toFixed(2)} EGP`}
+          accentColor="bg-rose-500"
+          glowColor="glow-red"
+        />
+        <StatCard
+          icon={<Wallet className="w-5 h-5" />}
+          label={isRTL ? "صافي الخزينة" : "TREASURY BALANCE"}
+          value={`${balance.toFixed(2)} EGP`}
+          accentColor={balance >= 0 ? "bg-blue-500" : "bg-rose-500"}
+          glowColor={balance >= 0 ? "glow-blue" : "glow-red"}
+        />
       </div>
 
       {/* ── Transactions History ─────────────── */}
@@ -156,10 +153,7 @@ export default function FinanceClient({ initialTransactions, user }: { initialTr
             <input 
               type="text"
               placeholder={isRTL ? "بحث..." : "Search..."}
-              className={cn(
-                "w-full bg-card border border-border rounded-xl py-2 pl-10 pr-4 outline-none focus:border-blue-500/50 transition-all text-sm",
-                isRTL && "pl-4 pr-10 text-right"
-              )}
+              className="w-full bg-card border border-border rounded-xl py-2 ps-10 pe-4 outline-none focus:border-blue-500/50 transition-all text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -283,7 +277,7 @@ export default function FinanceClient({ initialTransactions, user }: { initialTr
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ms-1">
                   {isRTL ? "المبلغ (ج.م)" : "AMOUNT (EGP)"}
                 </label>
                 <input 
@@ -297,7 +291,7 @@ export default function FinanceClient({ initialTransactions, user }: { initialTr
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ms-1">
                   {isRTL ? "البيان / الوصف" : "DESCRIPTION / NOTE"}
                 </label>
                 <textarea 

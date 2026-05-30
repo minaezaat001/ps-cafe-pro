@@ -8,17 +8,19 @@ import { toast } from "sonner";
 import {
   ClipboardList, Clock, Gamepad2, Coffee,
   TrendingUp, TrendingDown, MinusCircle,
-  RefreshCw, LogIn, X, ShieldCheck,
+  RefreshCw, LogIn, ShieldCheck,
   User, Calendar, Printer, Eye, Activity,
   CheckCircle2, AlertTriangle, GlassWater, Package
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/LanguageContext";
 import { useTheme } from "@/lib/ThemeContext";
 import { format, formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useKeyPress } from "@/lib/useKeyPress";
+import StatCard from "@/components/ui/StatCard";
+import ModalShell from "@/components/ui/ModalShell";
 
 interface ShiftSummary {
   gaming: number;
@@ -181,17 +183,6 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
   const varianceColor = variance > 0.5 ? "text-emerald-400" : variance < -0.5 ? "text-red-400" : "text-amber-400";
   const varianceIcon = variance > 0.5 ? <TrendingUp className="w-5 h-5" /> : variance < -0.5 ? <TrendingDown className="w-5 h-5" /> : <MinusCircle className="w-5 h-5" />;
 
-  const SummaryCard = ({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string; sub?: string; color: string }) => (
-    <div className="glass-card p-4 rounded-2xl flex items-center gap-3">
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", color)}>{icon}</div>
-      <div className={isRTL ? "text-right" : "text-left"}>
-        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">{label}</p>
-        <p className="text-lg font-black text-foreground font-mono leading-tight">{value}</p>
-        {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
-      </div>
-    </div>
-  );
-
   const VarianceBadge = ({ v }: { v: number }) => {
     const color = v > 0.5 ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
       : v < -0.5 ? "text-red-400 bg-red-500/10 border-red-500/20"
@@ -210,7 +201,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
 
       {/* ── Header ── */}
       <div className="flex justify-between items-start flex-wrap gap-3">
-        <div className={isRTL ? "text-right" : "text-left"}>
+        <div className="text-start">
           <h1 className="text-2xl font-black text-foreground flex items-center gap-3">
             <ClipboardList className="w-7 h-7 text-blue-400" />
             {isRTL ? "إدارة الورديات" : "Shift Management"}
@@ -219,7 +210,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
             {isRTL ? "X-Report — تتبع صندوق الكاشير لحظياً" : "X-Report — Real-time cash drawer tracking"}
           </p>
         </div>
-        <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+        <div className="flex items-center gap-2">
           <button onClick={handleManualRefresh}
             className={cn("p-2.5 rounded-xl border border-border text-muted-foreground hover:bg-muted transition-all", isRefreshing && "animate-spin")}>
             <RefreshCw className="w-4 h-4" />
@@ -241,7 +232,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
 
           {/* Shift Meta row */}
           <div className="flex flex-wrap justify-between items-start gap-3 mb-6">
-            <div className={isRTL ? "text-right" : ""}>
+            <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 uppercase tracking-widest">
                   <Activity className="w-3 h-3 animate-pulse" />
@@ -281,29 +272,33 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
 
           {/* Revenue Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <SummaryCard
-              icon={<Gamepad2 className="w-5 h-5 text-violet-400" />}
+            <StatCard
+              icon={<Gamepad2 className="w-5 h-5" />}
               label={isRTL ? "إيراد الألعاب" : "Gaming"}
               value={`${(summary?.gaming ?? 0).toFixed(2)} ج`}
-              color="bg-violet-500/10"
+              accentColor="bg-violet-500"
+              glowColor="glow-purple"
             />
-            <SummaryCard
-              icon={<Coffee className="w-5 h-5 text-amber-400" />}
+            <StatCard
+              icon={<Coffee className="w-5 h-5" />}
               label={isRTL ? "الكافيتريا" : "Cafeteria"}
               value={`${(summary?.cafeteria ?? 0).toFixed(2)} ج`}
-              color="bg-amber-500/10"
+              accentColor="bg-amber-500"
+              glowColor="glow-amber"
             />
-            <SummaryCard
-              icon={<TrendingUp className="w-5 h-5 text-emerald-400" />}
+            <StatCard
+              icon={<TrendingUp className="w-5 h-5" />}
               label={isRTL ? "إيرادات أخرى" : "Income"}
               value={`+${(summary?.income ?? 0).toFixed(2)} ج`}
-              color="bg-emerald-500/10"
+              accentColor="bg-emerald-500"
+              glowColor="glow-green"
             />
-            <SummaryCard
-              icon={<TrendingDown className="w-5 h-5 text-red-400" />}
+            <StatCard
+              icon={<TrendingDown className="w-5 h-5" />}
               label={isRTL ? "مصروفات" : "Expenses"}
               value={`-${(summary?.expenses ?? 0).toFixed(2)} ج`}
-              color="bg-red-500/10"
+              accentColor="bg-red-500"
+              glowColor="glow-red"
             />
           </div>
 
@@ -418,32 +413,19 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
       )}
 
       {/* ── Detail Modal ── */}
-      <AnimatePresence>
-        {detailShift && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setDetailShift(null)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.96, opacity: 0, y: 8 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              className="glass-card w-full max-w-md p-6 rounded-2xl relative z-[10000] border-t-4 max-h-[85vh] overflow-y-auto scrollbar-hide"
-              style={{ borderTopColor: "#6366f1" }}
-              dir={isRTL ? "rtl" : "ltr"}>
-              <div className="flex justify-between items-center mb-5">
-                <h2 className="text-lg font-black text-foreground flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-violet-400" />
-                  {isRTL ? "تفاصيل الوردية" : "Shift Details"}
-                </h2>
-                <div className="flex gap-2">
-                  <button onClick={() => window.open(`/print/shift/${detailShift.id}`, "_blank")}
-                    className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors">
-                    <Printer className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setDetailShift(null)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+      <ModalShell isOpen={!!detailShift} onClose={() => setDetailShift(null)} accentColor="border-indigo-500" maxWidth="max-w-2xl">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-black text-foreground flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-violet-400" />
+            {isRTL ? "تفاصيل الوردية" : "Shift Details"}
+          </h2>
+          <div className="flex gap-2">
+            <button onClick={() => window.open(`/print/shift/${detailShift.id}`, "_blank")}
+              className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors">
+              <Printer className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
               <div className="space-y-3">
                 {/* Status Badge */}
@@ -495,47 +477,25 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   </div>
                 )}
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </ModalShell>
 
       {/* ── Drinks Summary Modal ── */}
-      <AnimatePresence>
-        {drinksShift && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setDrinksShift(null)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0, y: 8 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              className="glass-card w-full max-w-md rounded-2xl relative z-[10000] border-t-4 max-h-[85vh] overflow-hidden flex flex-col"
-              style={{ borderTopColor: "#f59e0b" }}
-              dir={isRTL ? "rtl" : "ltr"}
-            >
-              {/* Header */}
-              <div className={cn("flex justify-between items-center p-5 border-b border-border", isRTL && "flex-row-reverse")}>
-        <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                    <Coffee className="w-5 h-5 text-amber-400" />
-                  </div>
-                  <div className={isRTL ? "text-right" : "text-left"}>
-                    <h2 className="text-base font-black text-foreground">
-                      {isRTL ? "ملخص المشاريب" : "Drinks Summary"}
-                    </h2>
-                    {drinksShift.closedAt && (
-                      <p className="text-[10px] text-muted-foreground font-mono">
-                        {format(new Date(drinksShift.closedAt), "dd/MM/yyyy — HH:mm")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button onClick={() => setDrinksShift(null)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+      <ModalShell isOpen={!!drinksShift} onClose={() => setDrinksShift(null)} accentColor="border-amber-500" maxWidth="max-w-2xl">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
+            <Coffee className="w-5 h-5 text-amber-400" />
+          </div>
+          <div className="text-start">
+            <h2 className="text-base font-black text-foreground">
+              {isRTL ? "ملخص المشاريب" : "Drinks Summary"}
+            </h2>
+            {drinksShift.closedAt && (
+              <p className="text-[10px] text-muted-foreground font-mono">
+                {format(new Date(drinksShift.closedAt), "dd/MM/yyyy — HH:mm")}
+              </p>
+            )}
+          </div>
+        </div>
 
               {/* Body */}
               <div className="overflow-y-auto flex-1 scrollbar-hide">
@@ -576,7 +536,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                           )}
                         </div>
                         {/* Revenue */}
-                        <div className={cn("text-right shrink-0", isRTL && "text-left")}>
+                        <div className="text-end shrink-0">
                           <p className="font-mono font-black text-foreground">{item.total.toFixed(2)}</p>
                           <p className="text-[10px] text-muted-foreground font-bold">ج.م</p>
                         </div>
@@ -593,7 +553,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                     <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
                       <Coffee className="w-4 h-4 text-amber-400" />
                     </div>
-                    <div className={isRTL ? "text-right" : ""}>
+                    <div>
                       <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                         {isRTL ? "إجمالي الأصناف" : "Total Items"}
                       </p>
@@ -602,7 +562,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                       </p>
                     </div>
                   </div>
-                  <div className={isRTL ? "text-left" : "text-right"}>
+                  <div className="text-end">
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                       {isRTL ? "الإيراد" : "Revenue"}
                     </p>
@@ -612,30 +572,14 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   </div>
                 </div>
               )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </ModalShell>
 
       {/* ── Open Shift Modal ── */}
-      <AnimatePresence>
-        {showOpenModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowOpenModal(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.96, opacity: 0, y: 8 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-[10000] border-t-4"
-              style={{ borderTopColor: "#3b82f6" }}
-              dir={isRTL ? "rtl" : "ltr"}>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-black text-foreground flex items-center gap-2">
-                  <LogIn className="w-5 h-5 text-blue-400" />
-                  {isRTL ? "فتح وردية جديدة" : "Open New Shift"}
-                </h2>
-                <button onClick={() => setShowOpenModal(false)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground"><X className="w-4 h-4" /></button>
-              </div>
+      <ModalShell isOpen={showOpenModal} onClose={() => setShowOpenModal(false)} accentColor="border-blue-500">
+        <h2 className="text-xl font-black text-foreground flex items-center gap-2 mb-6">
+          <LogIn className="w-5 h-5 text-blue-400" />
+          {isRTL ? "فتح وردية جديدة" : "Open New Shift"}
+        </h2>
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">
                 💵 {isRTL ? "عهدة البداية (Opening Float)" : "Opening Float"}
               </label>
@@ -651,30 +595,14 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   {isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : (isRTL ? "فتح الوردية" : "Open Shift")}
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </ModalShell>
 
       {/* ── Close Shift Modal ── */}
-      <AnimatePresence>
-        {showCloseModal && summary && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowCloseModal(false)}
-              className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-            <motion.div initial={{ scale: 0.96, opacity: 0, y: 8 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 8 }}
-              className="glass-card w-full max-w-sm p-7 rounded-2xl relative z-[10000] border-t-4"
-              style={{ borderTopColor: "#ef4444" }}
-              dir={isRTL ? "rtl" : "ltr"}>
-              <div className="flex justify-between items-center mb-5">
-                <h2 className="text-xl font-black text-foreground flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-red-400" />
-                  {isRTL ? "إغلاق الوردية" : "Close Shift"}
-                </h2>
-                <button onClick={() => setShowCloseModal(false)} className="p-2 hover:bg-muted rounded-xl text-muted-foreground"><X className="w-4 h-4" /></button>
-              </div>
+      <ModalShell isOpen={showCloseModal} onClose={() => setShowCloseModal(false)} accentColor="border-red-500">
+        <h2 className="text-xl font-black text-foreground flex items-center gap-2 mb-5">
+          <ShieldCheck className="w-5 h-5 text-red-400" />
+          {isRTL ? "إغلاق الوردية" : "Close Shift"}
+        </h2>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4 text-center">
                 <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mb-1">{isRTL ? "المبلغ المتوقع" : "Expected Cash"}</p>
@@ -714,10 +642,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                   {isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : (isRTL ? "تأكيد الإغلاق" : "Confirm Close")}
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </ModalShell>
     </div>
   );
 }

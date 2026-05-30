@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Coffee, Search, ShoppingCart, Plus, Minus, Trash2, AlertTriangle, Package } from 'lucide-react';
+import { Coffee, Search, ShoppingCart, Plus, Minus, Trash2, Package } from 'lucide-react';
+import AlertBanner from "@/components/ui/AlertBanner";
 import { processQuickSale } from '../actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLang } from '@/lib/LanguageContext';
 import { useKeyPress } from '@/lib/useKeyPress';
-import Link from 'next/link';
 
 interface InventoryItem { id: string; name: string; category: string; price: number; stock: number; }
 interface CartItem extends InventoryItem { quantity: number; }
@@ -73,7 +73,7 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className={isRTL ? 'text-right' : ''}>
+      <div>
         <h2 className="text-2xl font-black text-foreground mb-1">
           {t('cafeteria.title')} <span className="text-amber-400">{t('cafeteria.titleAccent')}</span>
         </h2>
@@ -81,20 +81,13 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
       </div>
 
       {!activeShift && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
-            </div>
-            <div className={isRTL ? 'text-right' : 'text-left'}>
-              <h3 className="text-red-400 font-bold">{isRTL ? 'لا توجد وردية مفتوحة!' : 'No Active Shift!'}</h3>
-              <p className="text-xs text-red-400/80 mt-0.5">{isRTL ? 'أنت بحاجة لفتح وردية الكاشير الآن لتتمكن من المبيعات.' : 'You must log a shift to process cafeteria orders.'}</p>
-            </div>
-          </div>
-          <Link href="/shift" className="px-5 py-2.5 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors whitespace-nowrap text-sm h-fit">
-            {isRTL ? 'فتح وردية جديدة' : 'Open Current Shift'}
-          </Link>
-        </div>
+        <AlertBanner
+          variant="danger"
+          title={isRTL ? 'لا توجد وردية مفتوحة!' : 'No Active Shift!'}
+          description={isRTL ? 'أنت بحاجة لفتح وردية الكاشير الآن لتتمكن من المبيعات.' : 'You must log a shift to process cafeteria orders.'}
+          actionLabel={isRTL ? 'فتح وردية جديدة' : 'Open Current Shift'}
+          actionHref="/shift"
+        />
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -119,14 +112,11 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
                   <Coffee className="w-5 h-5 text-amber-400" />
                 </div>
-                <div className={isRTL ? 'text-right' : ''}>
+                <div>
                   <p className="text-xs font-bold truncate text-foreground">{item.name}</p>
                   <p className="text-[10px] text-muted-foreground">{item.price} EGP</p>
                 </div>
-                <div className={cn(
-                  'absolute top-2 px-1.5 py-0.5 rounded-full bg-card text-[9px] font-bold text-muted-foreground',
-                  isRTL ? 'left-2' : 'right-2'
-                )}>
+                <div className="absolute top-2 px-1.5 py-0.5 rounded-full bg-card text-[9px] font-bold text-muted-foreground end-2">
                   {item.stock} {t('cafeteria.left')}
                 </div>
               </button>
@@ -144,7 +134,7 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
             <ShoppingCart className="w-5 h-5 text-amber-400" /> {t('cafeteria.activeBill')}
           </h3>
 
-          <div className="flex-1 space-y-3 overflow-y-auto max-h-80 pr-1">
+          <div className="flex-1 space-y-3 overflow-y-auto max-h-80 pe-1">
             {cart.length === 0 ? (
               <div className="text-center py-16 opacity-20">
                 <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-foreground" />
@@ -156,8 +146,8 @@ export default function CafetriaClient({ inventory, activeShift }: { inventory: 
                   <motion.div key={item.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
                     className={cn('flex items-center gap-3 p-3 rounded-xl bg-card border border-border', isRTL && 'flex-row-reverse')}>
                     <div className="flex-1 min-w-0">
-                      <p className={cn('text-sm font-bold truncate text-foreground', isRTL && 'text-right')}>{item.name}</p>
-                      <p className={cn('text-xs text-muted-foreground', isRTL && 'text-right')}>{item.price} EGP</p>
+                      <p className="text-sm font-bold truncate text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.price} EGP</p>
                     </div>
                     <div className="flex items-center gap-1 bg-background rounded-lg px-1 py-1">
                       <button onClick={() => updateQuantity(item.id, -1)} className="p-1 text-muted-foreground hover:text-foreground transition"><Minus className="w-3 h-3" /></button>

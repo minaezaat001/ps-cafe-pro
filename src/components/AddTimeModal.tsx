@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Timer, RefreshCw } from 'lucide-react';
+import ModalShell from "@/components/ui/ModalShell";
 import { cn } from '@/lib/utils';
 
 export interface AddTimeModalProps {
@@ -28,17 +28,13 @@ export default function AddTimeModal({
   t,
   isRTL,
 }: AddTimeModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <motion.div initial={{ scale: 0.98, opacity: 0, y: 6 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
-        className="relative w-full max-w-sm bg-background border border-border p-6 rounded-2xl shadow-2xl glass-card text-center"
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-sm"
+    >
+      <div dir={isRTL ? 'rtl' : 'ltr'} className="text-center">
         <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
           <Timer className="text-emerald-400 w-6 h-6" />
         </div>
@@ -71,7 +67,7 @@ export default function AddTimeModal({
             </button>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
 }

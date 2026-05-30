@@ -113,7 +113,7 @@ export default function AuditClient() {
           <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
             <Filter className="w-4 h-4 text-blue-400" strokeWidth={2} />
           </div>
-          <div className={isRTL ? 'text-right' : ''}>
+          <div>
             <h3 className="text-sm font-bold tracking-wide uppercase text-blue-400">
               {isRTL ? 'تصفية السجلات' : 'Filter Logs'}
             </h3>
@@ -126,13 +126,13 @@ export default function AuditClient() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Search */}
           <div className="relative">
-            <Search className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground ${isRTL ? 'right-3' : 'left-3'}`} />
+            <Search className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground start-3`} />
             <input
               type="text"
               placeholder={isRTL ? 'ابحث في السبب...' : 'Search reason...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full py-3 ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all`}
+              className="w-full py-3 ps-10 pe-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
               dir={isRTL ? 'rtl' : 'ltr'}
             />
           </div>
@@ -141,7 +141,7 @@ export default function AuditClient() {
           <select
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
-            className={`py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all ${isRTL ? 'text-right' : ''}`}
+            className="py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
             <option value="">{isRTL ? 'كل العمليات' : 'All Actions'}</option>
@@ -155,14 +155,14 @@ export default function AuditClient() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className={`py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all ${isRTL ? 'text-right' : ''}`}
+            className="py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
             dir={isRTL ? 'rtl' : 'ltr'}
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className={`py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all ${isRTL ? 'text-right' : ''}`}
+            className="py-3 px-4 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 transition-all"
             dir={isRTL ? 'rtl' : 'ltr'}
           />
         </div>
@@ -192,19 +192,19 @@ export default function AuditClient() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/30 bg-card/30">
-                  <th className={`p-4 font-semibold text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <th className="p-4 font-semibold text-muted-foreground text-start">
                     {isRTL ? 'التاريخ' : 'Date'}
                   </th>
-                  <th className={`p-4 font-semibold text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <th className="p-4 font-semibold text-muted-foreground text-start">
                     {isRTL ? 'المستخدم' : 'User'}
                   </th>
-                  <th className={`p-4 font-semibold text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <th className="p-4 font-semibold text-muted-foreground text-start">
                     {isRTL ? 'العملية' : 'Action'}
                   </th>
-                  <th className={`p-4 font-semibold text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <th className="p-4 font-semibold text-muted-foreground text-start">
                     {isRTL ? 'النوع' : 'Entity'}
                   </th>
-                  <th className={`p-4 font-semibold text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <th className="p-4 font-semibold text-muted-foreground text-start">
                     {isRTL ? 'السبب / التبرير' : 'Reason / Justification'}
                   </th>
                 </tr>
@@ -212,10 +212,10 @@ export default function AuditClient() {
               <tbody>
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b border-border/20 hover:bg-card/20 transition-all">
-                    <td className={`p-4 text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td className="p-4 text-muted-foreground text-start">
                       {formatDate(log.createdAt)}
                     </td>
-                    <td className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td className="p-4 text-start">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
                           <User className="w-3 h-3 text-blue-400" />
@@ -226,15 +226,15 @@ export default function AuditClient() {
                         </div>
                       </div>
                     </td>
-                    <td className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td className="p-4 text-start">
                       <span className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-semibold">
                         {getActionLabel(log.action)}
                       </span>
                     </td>
-                    <td className={`p-4 text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td className="p-4 text-muted-foreground text-start">
                       {log.entityType} #{log.entityId.slice(0, 8)}
                     </td>
-                    <td className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td className="p-4 text-start">
                       <div className="max-w-xs">
                         <p className="text-foreground font-medium text-sm leading-relaxed">{log.reason}</p>
                         {log.metadata && (

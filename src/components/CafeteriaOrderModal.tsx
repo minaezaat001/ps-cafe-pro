@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Coffee, GlassWater, Utensils, Cookie, Pizza, MoreHorizontal } from 'lucide-react';
+import { Coffee, GlassWater, Utensils, Cookie, Pizza, MoreHorizontal } from 'lucide-react';
+import ModalShell from "@/components/ui/ModalShell";
 import { cn } from '@/lib/utils';
 
 export interface CafeteriaOrderModalProps {
@@ -40,8 +40,6 @@ export default function CafeteriaOrderModal({
   t,
   isRTL,
 }: CafeteriaOrderModalProps) {
-  if (!isOpen) return null;
-
   const orderTotal = inventory.reduce((sum, item) => sum + (item.price * (selectedItems[item.id] || 0)), 0);
   const totalItems = Object.values(selectedItems).reduce((sum, qty) => sum + qty, 0);
 
@@ -57,35 +55,16 @@ export default function CafeteriaOrderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <motion.div initial={{ scale: 0.98, opacity: 0, y: 6 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 6 }} transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
-        className="glass-card w-full max-w-md p-6 sm:p-7 rounded-3xl relative z-[10000] border-t-[5px] overflow-hidden flex flex-col"
-        style={{ borderTopColor: '#f59e0b', boxShadow: isLight ? '0 10px 40px -10px rgba(245,158,11,0.2)' : '0 20px 50px -12px rgba(245, 158, 11, 0.2)' }}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        {/* Premium Header */}
-        <div className={cn('flex justify-between items-center mb-6', isRTL && 'flex-row-reverse')}>
-          <div className={cn('flex items-center gap-3', isRTL && 'flex-row-reverse')}>
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{
-              background: 'linear-gradient(135deg, #f59e0b20, #f9731610)',
-              border: '1px solid #f59e0b30'
-            }}>
-              <Coffee className="w-6 h-6 text-amber-500" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-foreground leading-tight">{t('nav.cafeteria')}</h2>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{isRTL ? 'إضافة عناصر للفاتورة' : 'Add items to bill'}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2.5 hover:bg-muted rounded-xl text-muted-foreground transition-colors" style={{
-            background: isLight ? 'rgba(15,23,42,0.05)' : 'rgba(255,255,255,0.05)'
-          }}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <ModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      accentColor="border-amber-500"
+      maxWidth="max-w-md"
+      title={t('nav.cafeteria')}
+      titleIcon={<Coffee className="w-6 h-6" />}
+    >
+      <div dir={isRTL ? 'rtl' : 'ltr'} className="flex flex-col overflow-hidden">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-4">{isRTL ? 'إضافة عناصر للفاتورة' : 'Add items to bill'}</p>
 
         {/* Categories Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2 -mx-2 px-2">
@@ -106,7 +85,7 @@ export default function CafeteriaOrderModal({
         </div>
 
         {/* Items Grid (POS Style) */}
-        <div className="max-h-[50vh] overflow-y-auto grid grid-cols-2 sm:grid-cols-2 gap-3 mb-6 pr-1.5 scrollbar-hide content-start pt-1">
+        <div className="max-h-[50vh] overflow-y-auto grid grid-cols-2 sm:grid-cols-2 gap-3 mb-6 pe-1.5 scrollbar-hide content-start pt-1">
           {(inventory || [])
             .filter(item => selectedOrderCategory === 'All' || item.category === selectedOrderCategory)
             .map((item) => {
@@ -131,7 +110,7 @@ export default function CafeteriaOrderModal({
                   )}
                 >
                   {/* Top Section: Avatar & Stock/Price */}
-                  <div className={cn("flex justify-between items-start mb-3", isRTL && "flex-row-reverse")}>
+                  <div className="flex justify-between items-start mb-3">
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center text-[15px] font-black shrink-0 transition-colors uppercase shadow-sm",
                       isSelected
@@ -148,13 +127,13 @@ export default function CafeteriaOrderModal({
                         {item.stock} left
                       </span>
                       <span className="font-mono text-[13px] font-black text-foreground leading-none">
-                        {item.price}<span className="text-[9px] text-muted-foreground ml-0.5" style={{ marginInlineStart: '2px' }}>EGP</span>
+                        {item.price}<span className="text-[9px] text-muted-foreground ms-0.5" style={{ marginInlineStart: '2px' }}>EGP</span>
                       </span>
                     </div>
                   </div>
 
                   {/* Info */}
-                  <div className={cn("mb-4 min-h-[36px]", isRTL ? 'text-right' : 'text-left')}>
+                  <div className="mb-4 min-h-[36px] text-start">
                     <h4 className={cn("font-bold text-sm leading-tight line-clamp-2 transition-colors", isSelected ? "text-amber-500 dark:text-amber-400" : "text-foreground")}>
                       {item.name}
                     </h4>
@@ -221,12 +200,12 @@ export default function CafeteriaOrderModal({
         <div className="pt-5 border-t border-dashed border-border mt-auto">
           <div className="space-y-4">
             {orderTotal > 0 && (
-              <div className={cn("flex justify-between items-end px-1", isRTL && "flex-row-reverse")}>
-                <div className={isRTL ? 'text-right' : 'text-left'}>
+              <div className="flex justify-between items-end px-1">
+                <div className="text-start">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('device.grandTotal') || 'Total'}</p>
                   <p className="text-sm font-bold text-foreground">{totalItems} {isRTL ? 'عناصر' : 'Items'}</p>
                 </div>
-                <div className={cn("flex items-end gap-1.5", isRTL && "flex-row-reverse")}>
+                <div className="flex items-end gap-1.5">
                   <span className="text-2xl sm:text-3xl font-black text-amber-500 leading-none">{orderTotal}</span>
                   <span className="text-xs font-bold text-muted-foreground pb-1">EGP</span>
                 </div>
@@ -248,7 +227,7 @@ export default function CafeteriaOrderModal({
             </button>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
 }

@@ -118,7 +118,7 @@ export const Sidebar = ({
         className={cn(
           'fixed inset-y-0 z-[70] w-72 flex flex-col p-5 h-screen transition-all duration-300 transform shrink-0',
           'bg-background border-r border-border',
-          isRTL ? 'right-0 border-r-0 border-l' : 'left-0',
+          'start-0 border-e',
           isOpen ? 'translate-x-0' : (isRTL ? 'translate-x-[100%]' : 'translate-x-[-100%]'),
           'lg:relative lg:translate-x-0 lg:flex lg:w-64'
         )}
@@ -126,7 +126,7 @@ export const Sidebar = ({
         {/* Mobile Close Button */}
         <button 
           onClick={onClose}
-          className={cn("lg:hidden absolute top-4 p-2 text-muted-foreground hover:bg-muted rounded-lg", isRTL ? 'left-4' : 'right-4')}
+          className={cn("lg:hidden absolute top-4 end-4 p-2 text-muted-foreground hover:bg-muted rounded-lg")}
         >
           <X className="w-5 h-5" />
         </button>
@@ -136,7 +136,7 @@ export const Sidebar = ({
           style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' }}>
           <Gamepad2 className="text-white w-5 h-5" />
         </div>
-        <div className={isRTL ? 'text-right' : 'text-left'}>
+        <div className="text-start">
           <h1 className="font-black tracking-tight text-foreground leading-tight uppercase truncate max-w-[160px]">
             {cafeName}
           </h1>
@@ -179,11 +179,11 @@ export const Sidebar = ({
               {isActive && (
                 <div className={cn(
                   'nav-active-bar',
-                  isRTL ? 'right-0 left-auto rounded-r-none rounded-l-[4px]' : 'left-0'
+                  'start-0 rounded-e-[4px]'
                 )} />
               )}
               <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive && item.colorActive)} />
-              <span className={cn('font-semibold text-base', isRTL && 'text-right')}>{t(item.labelKey)}</span>
+              <span className="font-semibold text-base">{t(item.labelKey)}</span>
               {item.labelKey === 'nav.cafeteria' && <LowStockBadge />}
               {isActive && (
                 <ChevronRight className={cn(
@@ -243,7 +243,7 @@ export const Sidebar = ({
             style={{ background: 'rgba(59,130,246,0.15)' }}>
             <Users className="w-4 h-4 text-blue-400" />
           </div>
-          <div className={cn('flex-1 min-w-0', isRTL && 'text-right')}>
+          <div className="flex-1 min-w-0">
             <p className="text-sm font-bold truncate text-muted-foreground">{user?.username || 'Guest'}</p>
             <p className="text-xs text-muted-foreground">{t('nav.role')}: {user?.role || 'User'}</p>
           </div>

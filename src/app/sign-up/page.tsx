@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Gamepad2, User, Mail, Lock, Building, Phone, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { Gamepad2, User, Lock, Building, Phone, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,6 @@ import { signup } from '../actions/onboarding.actions';
 export default function SignupPage() {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     username: '',
     password: '',
@@ -97,22 +96,6 @@ export default function SignupPage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="مثال: 01155261969"
-                      className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-gray-600 text-left"
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">البريد الإلكتروني</label>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-card/50 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="admin@cafe.com"
                       className="bg-transparent border-none outline-none w-full text-sm font-medium placeholder:text-gray-600 text-left"
                       dir="ltr"
                     />

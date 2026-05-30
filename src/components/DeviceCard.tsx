@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
+import ActionButton from "@/components/ui/ActionButton";
 import { DeviceQrModal } from '@/components/DeviceQrModal';
 import CheckoutModal from '@/components/CheckoutModal';
 import CafeteriaOrderModal from '@/components/CafeteriaOrderModal';
@@ -216,7 +217,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
       <div
         {...dndEvents}
         className={cn(
-          "glass-card p-3 pr-4 rounded-xl flex items-center justify-between border-l-4 transition-all cursor-pointer hover:bg-muted/50",
+          "glass-card p-3 pe-4 rounded-xl flex items-center justify-between border-s-4 transition-all cursor-pointer hover:bg-muted/50",
           isActive ? "animate-pulse-glow" : "opacity-80",
           isDragOver ? "ring-2 ring-violet-500 scale-[1.02] bg-violet-500/10" : ""
         )}
@@ -224,9 +225,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
         onClick={() => { if (isActive) setShowDetails(true); }}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+        <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded text-muted-foreground flex items-center justify-center bg-background">{deviceIcon}</div>
-          <div className={isRTL ? 'text-right' : 'text-left'}>
+          <div className="text-start">
             <h3 className="font-black text-sm text-foreground">#{device.number}</h3>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{device.type}</p>
           </div>
@@ -254,7 +255,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                 <button onClick={(e) => { e.stopPropagation(); setShowCheckoutModal(true); }} className="p-1 hover:bg-red-500/20 text-red-500 rounded transition-colors"><Square className="w-3.5 h-3.5" /></button>
               </div>
             </div>
-            <div className={isRTL ? 'text-left' : 'text-right'}>
+            <div className="text-end">
               <span className={cn("text-[10px] text-muted-foreground flex items-center gap-1 font-bold", isRTL ? 'justify-start flex-row-reverse' : 'justify-end')}>
                 {session.isMulti ? <Users className="w-3 h-3" /> : <User className="w-3 h-3" />}
                 {session.isMulti ? t('device.multi') : t('device.single')}
@@ -263,7 +264,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             </div>
           </>
         ) : (
-          <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
+          <div className="flex items-center gap-3">
             <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 py-0.5 rounded bg-muted/50 border border-border">{t('device.available')}</span>
             <button disabled={isPending} onClick={(e) => { e.stopPropagation(); handleStart('OPEN'); }} className="p-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"><Play className="w-4 h-4 translate-x-0.5" /></button>
           </div>
@@ -316,7 +317,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             >
               {deviceIcon}
             </div>
-            <div className={isRTL ? 'text-right' : ''}>
+            <div className="text-start">
               <div className={cn('flex items-center gap-2', isRTL && 'flex-row-reverse')}>
                 <h3 className="text-lg font-black text-foreground leading-tight">#{device.number}</h3>
               </div>
@@ -326,7 +327,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             </div>
           </div>
 
-          <div className={cn("flex items-center gap-2 shrink-0", isRTL && "flex-row-reverse")}>
+          <div className="flex items-center gap-2 shrink-0">
             {showQrButton && menuBaseUrl && (
               <button
                 type="button"
@@ -429,61 +430,18 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setShowOrderModal(true)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold group transition-all duration-200"
-              style={{ 
-                background: 'rgba(245,158,11,0.08)', 
-                border: '1px solid rgba(245,158,11,0.2)',
-                color: isLight ? '#b45309' : '#fbbf24'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(245,158,11,0.9)';
-                e.currentTarget.style.color = '#000';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(245,158,11,0.08)';
-                e.currentTarget.style.color = isLight ? '#b45309' : '#fbbf24';
-              }}
-            >
-              <Coffee className="w-4 h-4 transition-transform group-hover:scale-110" /> {t('device.cafeteria')}
-            </button>
-            <button onClick={() => setShowTransferMode(true)}
-              className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold group transition-all duration-200"
-              style={{ 
-                background: 'rgba(139,92,246,0.08)', 
-                border: '1px solid rgba(139,92,246,0.2)',
-                color: isLight ? '#6d28d9' : '#a78bfa'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(139,92,246,0.9)';
-                e.currentTarget.style.color = '#fff';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(139,92,246,0.08)';
-                e.currentTarget.style.color = isLight ? '#6d28d9' : '#a78bfa';
-              }}
-            >
-              <ArrowRightLeft className="w-4 h-4 transition-transform group-hover:rotate-90" /> {t('device.transfer')}
-            </button>
+            <ActionButton variant="warning" onClick={() => setShowOrderModal(true)} icon={<Coffee className="w-4 h-4" />}>
+              {t('device.cafeteria')}
+            </ActionButton>
+            <ActionButton variant="primary" onClick={() => setShowTransferMode(true)} icon={<ArrowRightLeft className="w-4 h-4" />}>
+              {t('device.transfer')}
+            </ActionButton>
             {session?.type === 'FIXED' && (
-              <button onClick={() => setShowAddTimeModal(true)}
-                className="col-span-2 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold group transition-all duration-200"
-                style={{ 
-                  background: 'rgba(16,185,129,0.08)', 
-                  border: '1px solid rgba(16,185,129,0.2)',
-                  color: isLight ? '#047857' : '#10b981'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(16,185,129,0.9)';
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(16,185,129,0.08)';
-                  e.currentTarget.style.color = isLight ? '#047857' : '#10b981';
-                }}
-              >
-                <Plus className="w-4 h-4 transition-transform group-hover:scale-125" /> {t('device.addTime')}
-              </button>
+              <div className="col-span-2">
+                <ActionButton variant="success" onClick={() => setShowAddTimeModal(true)} icon={<Plus className="w-4 h-4" />} fullWidth>
+                  {t('device.addTime')}
+                </ActionButton>
+              </div>
             )}
           </div>
 
@@ -499,24 +457,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             <span className="text-xl font-black font-mono" style={{ color: accent.hex }}>{calculateTotal()} <span className="text-[11px] font-bold text-muted-foreground">EGP</span></span>
           </div>
 
-          <button disabled={isPending} onClick={() => setShowCheckoutModal(true)}
-            className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 group disabled:opacity-50 transition-all duration-200"
-            style={{
-              background: 'rgba(239, 68, 68, 0.08)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              color: isLight ? '#b91c1c' : '#f87171'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)';
-              e.currentTarget.style.color = '#fff';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
-              e.currentTarget.style.color = isLight ? '#b91c1c' : '#f87171';
-            }}
-          >
-            <Square className="w-4 h-4" /> {t('device.finishBill')}
-          </button>
+          <ActionButton variant="danger" onClick={() => setShowCheckoutModal(true)} disabled={isPending} fullWidth icon={<Square className="w-4 h-4" />}>
+            {t('device.finishBill')}
+          </ActionButton>
         </div>
       ) : (
         <div className="px-5 pb-5 space-y-3 pt-1">

@@ -65,14 +65,14 @@ export default function JustificationModal({
 
           {/* Reason Input */}
           <div className="w-full mb-6">
-            <label className={`text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block ${isRTL ? 'text-right' : 'text-left'}`}>
+            <label className={`text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block text-start`}>
               {isRTL ? 'السبب / التبرير' : 'Reason / Justification'}
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={isRTL ? 'اكتب سبب قيامك بهذا الإجراء...' : 'Explain why you are performing this action...'}
-              className={`w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/10 transition-all min-h-[100px] resize-none ${isRTL ? 'text-right' : 'text-left'}`}
+              className={`w-full px-4 py-3 rounded-xl border border-border/50 bg-card/50 text-foreground text-sm font-medium focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/10 transition-all min-h-[100px] resize-none text-start`}
               dir={isRTL ? 'rtl' : 'ltr'}
             />
             <p className="text-xs text-muted-foreground mt-1">
@@ -80,7 +80,7 @@ export default function JustificationModal({
             </p>
           </div>
 
-          <div className={`flex gap-3 w-full ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className="flex gap-3 w-full">
             <button
               disabled={isLoading}
               onClick={() => !isLoading && onClose()}

@@ -77,7 +77,7 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className={cn('flex flex-col md:flex-row justify-between items-start md:items-center gap-4', isRTL && 'md:flex-row-reverse')}>
-        <div className={isRTL ? 'text-right' : ''}>
+        <div>
           <h2 className="text-2xl font-black text-foreground mb-1">
             {t('inventory.title')} <span className="text-teal-400">{t('inventory.titleAccent')}</span>
           </h2>
@@ -116,7 +116,7 @@ export default function InventoryClient({ initialItems }: { initialItems: Invent
               <th className="px-6 py-4 font-bold">{t('inventory.category')}</th>
               <th className="px-6 py-4 font-bold">{t('inventory.price')}</th>
               <th className="px-6 py-4 font-bold">{t('inventory.stock')}</th>
-              <th className={cn('px-6 py-4 font-bold', isRTL ? 'text-left' : 'text-right')}>{t('inventory.actions')}</th>
+              <th className={cn('px-6 py-4 font-bold', 'text-end')}>{t('inventory.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

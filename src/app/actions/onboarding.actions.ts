@@ -4,13 +4,11 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function signup(data: any) {
-  const { name, email, phone, username, password } = data;
+  const { name, phone, username, password } = data;
+  const email = `${username}@local.cafe`;
 
   try {
-    // 1. Check if tenant or user already exists
-    const existingTenant = await prisma.tenant.findUnique({ where: { email } });
-    if (existingTenant) throw new Error("A business with this email already exists.");
-
+    // 1. Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { username } });
     if (existingUser) throw new Error("Username is already taken.");
 
