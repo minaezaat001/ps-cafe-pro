@@ -11,7 +11,7 @@ export default function PricingPage() {
 
   const handleWhatsApp = (planName: string) => {
     // Replace YOUR_NUMBER with the actual WhatsApp number
-    const phoneNumber = "201000000000"; 
+    const phoneNumber = "201155261969"; 
     const message = `أهلاً، قمت بالتحويل للاشتراك [${planName}]. أرجو التفعيل.`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
