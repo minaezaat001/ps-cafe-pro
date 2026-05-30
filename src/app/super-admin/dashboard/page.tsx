@@ -19,6 +19,7 @@ export default function SuperAdminDashboard() {
   const [healthLoading, setHealthLoading] = useState(true);
   const [broadcastMsg, setBroadcastMsg] = useState('');
   const [broadcastType, setBroadcastType] = useState('INFO');
+  const [broadcastTenantId, setBroadcastTenantId] = useState('');
   const [sending, setSending] = useState(false);
 
   const fetchTenants = async () => {
@@ -71,8 +72,8 @@ export default function SuperAdminDashboard() {
     if (!broadcastMsg.trim()) return;
     setSending(true);
     try {
-      await createAnnouncement(broadcastMsg, broadcastType);
-      toast.success('Announcement sent to all users');
+      await createAnnouncement(broadcastMsg, broadcastType, broadcastTenantId || undefined);
+      toast.success(broadcastTenantId ? 'Announcement sent to tenant' : 'Announcement sent to all users');
       setBroadcastMsg('');
     } catch (err: any) {
       toast.error(err.message);
@@ -343,6 +344,16 @@ export default function SuperAdminDashboard() {
               maxLength={500}
               className="flex-1 px-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-medium placeholder:text-muted-foreground/40"
             />
+            <select
+              value={broadcastTenantId}
+              onChange={(e) => setBroadcastTenantId(e.target.value)}
+              className="px-4 py-3 bg-secondary/50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-sm font-bold text-foreground appearance-none cursor-pointer min-w-[180px]"
+            >
+              <option value="">{t('superAdmin.allTenants')}</option>
+              {tenants.map((tenant) => (
+                <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
+              ))}
+            </select>
             <select
               value={broadcastType}
               onChange={(e) => setBroadcastType(e.target.value)}

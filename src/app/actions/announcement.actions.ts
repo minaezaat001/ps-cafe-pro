@@ -12,8 +12,8 @@ export type AnnouncementData = {
   createdBy: string;
 };
 
-/** SUPER_ADMIN only — creates a new system-wide announcement. */
-export async function createAnnouncement(message: string, type: string = "INFO") {
+/** SUPER_ADMIN only — creates a new announcement (global or tenant-specific). */
+export async function createAnnouncement(message: string, type: string = "INFO", tenantId?: string) {
   const user = await getCurrentUser();
   if (!user || user.role !== 'SUPER_ADMIN') {
     throw new Error("Forbidden: only super admins can broadcast announcements");
@@ -33,19 +33,26 @@ export async function createAnnouncement(message: string, type: string = "INFO")
       message: message.trim(),
       type,
       createdBy: user.username,
+      tenantId: tenantId || null,
     },
   });
 
   revalidatePath("/super-admin/dashboard");
 }
 
-/** Accessible by all authenticated users — returns active announcements. */
+/** Accessible by all authenticated users — returns active announcements (global + tenant-specific). */
 export async function getActiveAnnouncements(): Promise<AnnouncementData[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
   const announcements = await prisma.systemAnnouncement.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      OR: [
+        { tenantId: null },            // global broadcasts
+        { tenantId: user.tenantId },   // targeted to this tenant
+      ],
+    },
     orderBy: { createdAt: "desc" },
   });
 

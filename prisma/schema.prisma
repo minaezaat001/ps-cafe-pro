@@ -32,6 +32,7 @@ model Tenant {
   appSettings           AppSetting[]
   tenantSettings        TenantSettings?        // Added: opposite relation for TenantSettings
   auditLogs             AuditLog[]             // Added: opposite relation for AuditLog
+  announcements         SystemAnnouncement[]
 }
 
 model User {
@@ -270,6 +271,8 @@ model SystemAnnouncement {
   isActive  Boolean  @default(true)
   createdBy String
   createdAt DateTime @default(now())
+  tenantId  String?  // null = global broadcast to all tenants
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
 
-  @@index([isActive, createdAt])
+  @@index([isActive, createdAt, tenantId])
 }
