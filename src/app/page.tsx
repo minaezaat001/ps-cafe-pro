@@ -3,6 +3,7 @@ import DashboardClient from "./DashboardClient";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { serializeDashboardDevice, snapshotRevision, serializeShift } from "@/lib/dashboard-serialize";
+import { getActivePricingMultiplier } from "@/lib/pricing";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -18,8 +19,9 @@ export default async function DashboardPage() {
   }
 
   const { devices: rawDevices } = await getDashboardData();
+  const pricingMultiplier = await getActivePricingMultiplier(user.tenantId);
   const devices = rawDevices.map((d) =>
-    serializeDashboardDevice(d as Parameters<typeof serializeDashboardDevice>[0])
+    serializeDashboardDevice(d as Parameters<typeof serializeDashboardDevice>[0], pricingMultiplier)
   );
   const initialRevision = snapshotRevision(devices);
 

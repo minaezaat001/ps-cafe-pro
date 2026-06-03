@@ -33,6 +33,7 @@ model Tenant {
   tenantSettings        TenantSettings?        // Added: opposite relation for TenantSettings
   auditLogs             AuditLog[]             // Added: opposite relation for AuditLog
   announcements         SystemAnnouncement[]
+  pricingTiers          PricingTier[]
 }
 
 model User {
@@ -41,6 +42,7 @@ model User {
   password              String
   role                  String
   permissions           String?
+  tokenVersion          Int                    @default(0)
   tenantId              String?
   tenant                Tenant?                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   financialTransactions FinancialTransaction[]
@@ -50,6 +52,8 @@ model User {
   openedShifts          Shift[]                @relation("ShiftOpened")
   closedShifts          Shift[]                @relation("ShiftClosed")
   auditLogs             AuditLog[]             // Added: opposite relation for AuditLog
+
+  @@index([tenantId, role])
 }
 
 model Device {
@@ -83,15 +87,19 @@ model Session {
   accumulatedSingleCost Decimal @default(0)
   accumulatedMultiCost  Decimal @default(0)
   lastRateChangeTime    DateTime  @default(now())
+  lastHeartbeat         DateTime  @default(now())
   shiftId               String?
   tenantId              String?
-  tenant                Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant                Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   segments              SessionSegment[]
   orders                Order[]
   endedByUser           User?     @relation("EndedBy", fields: [endedByUserId], references: [id])
   user                  User      @relation("StartedBy", fields: [userId], references: [id])
   device                Device    @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   shift                 Shift?    @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId, isActive, lastHeartbeat])
+  @@index([tenantId, startTime])
 }
 
 model InventoryItem {
@@ -121,10 +129,15 @@ model Order {
   isDeleted       Boolean       @default(false)
   deletedAt       DateTime?
   deletedByUserId String?
+  deletionReason  String?
   tenant          Tenant?       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
   session         Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   shift           Shift?        @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId, shiftId])
+  @@index([tenantId, status])
+  @@index([tenantId, createdAt])
 }
 
 model Sale {
@@ -141,6 +154,8 @@ model Sale {
   user            User?     @relation(fields: [userId], references: [id])
   items           SaleItem[]
   shift           Shift?    @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId, createdAt])
 }
 
 model SaleItem {
@@ -164,6 +179,7 @@ model DeviceType {
   tenantId  String?
   tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   @@unique([tenantId, name])
+  @@index([tenantId])
 }
 
 model FinancialTransaction {
@@ -178,6 +194,9 @@ model FinancialTransaction {
   tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id])
   shift       Shift    @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type])
 }
 
 model SessionSegment {
@@ -222,6 +241,8 @@ model Shift {
   //   CREATE UNIQUE INDEX only_one_open_shift_per_tenant
   //     ON "Shift" ("tenantId") WHERE status = 'OPEN';
   @@index([tenantId, status])
+  @@index([tenantId, openedAt])
+  @@index([tenantId, closedAt])
 }
 
 model AppSetting {
@@ -262,6 +283,20 @@ model TenantSettings {
   
   tenantId      String   @unique
   tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model PricingTier {
+  id          String   @id @default(cuid())
+  name        String
+  startTime   String?  // "14:00" (24h format)
+  endTime     String?  // "20:00" (24h format)
+  dayOfWeek   Int?     // 0 = Sunday, 6 = Saturday, null = all days
+  multiplier  Decimal  @default(1.0)
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 model SystemAnnouncement {

@@ -54,6 +54,7 @@ export async function login(username: string, password: string) {
       role: user.role,
       permissions,
       tenantId: user.tenantId ?? null,
+      tokenVersion: user.tokenVersion,
     };
     
     const accessToken = await signAccessToken(accessTokenPayload);
@@ -108,6 +109,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     });
 
     if (!dbUser) {
+      return null;
+    }
+
+    // Check tokenVersion for instant revocation support
+    if (payload.tokenVersion !== undefined && dbUser.tokenVersion !== payload.tokenVersion) {
       return null;
     }
 

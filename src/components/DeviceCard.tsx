@@ -55,7 +55,7 @@ interface DeviceCardProps {
   onMutationComplete?: () => void | Promise<void>;
 }
 
-export const DeviceCard: React.FC<DeviceCardProps> = ({
+function DeviceCardInner({
   device,
   session,
   allDevices,
@@ -66,7 +66,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
   showQrButton,
   menuBaseUrl,
   serverTimeOffset = 0,
-}) => {
+}: DeviceCardProps) {
   const {
     elapsed,
     remainingLabel,
@@ -568,4 +568,11 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
       />
     </motion.div>
   );
-};
+}
+
+export const DeviceCard = React.memo(DeviceCardInner, (prev, next) => {
+  return prev.device.id === next.device.id
+    && prev.session?.id === next.session?.id
+    && prev.isCompact === next.isCompact
+    && prev.activeShift === next.activeShift;
+});

@@ -91,7 +91,7 @@ export default function DashboardClient({
       cancelled = true;
       clearInterval(id);
     };
-  }, [isRTL]);
+  }, []);
 
   const toggleCompact = () => {
     const newVal = !isCompact;

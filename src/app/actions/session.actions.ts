@@ -251,17 +251,18 @@ export async function toggleSessionMode(sessionId: string, reason: string = "Ses
       },
     });
     
-    // Create audit log for session mode toggle
     await createAuditLog({
-      action: "TOGGLE_SESSION_MODE",
+      action: "SESSION_MODE_TOGGLE",
       entityType: "Session",
       entityId: sessionId,
       reason: reason,
       metadata: {
         changedBy: user.id,
         sessionId,
+        tenantId: session.tenantId,
         previousMode: session.isMulti ? 'MULTI' : 'SINGLE',
         newMode: !session.isMulti ? 'MULTI' : 'SINGLE',
+        costDifference: decToNumber(toDecimal(currentSegmentActualCost)),
         timestamp: new Date().toISOString()
       }
     });
@@ -308,13 +309,15 @@ export async function addSessionTime(sessionId: string, additionalMinutes: numbe
   revalidatePath("/");
 }
 
-export async function removeOrderFromSession(orderId: string, reason: string = "Order deleted without justification") {
+export async function removeOrderFromSession(orderId: string, reason: string) {
+  if (!reason || reason.trim().length === 0) {
+    throw new Error("يجب تقديم سبب حذف الطلب.");
+  }
   await requirePermissionAsync("dashboard.manage");
   await requireWritableTenantContext();
   const user = await requireAuthUser();
 
   await prisma.$transaction(async (tx) => {
-    // Lock the order and its session
     const order = await tx.order.findUnique({
       where: { id: orderId },
       include: { session: true },
@@ -324,7 +327,6 @@ export async function removeOrderFromSession(orderId: string, reason: string = "
       throw new Error("الطلب غير موجود.");
     }
 
-    // Cannot delete orders from ended sessions (already paid)
     if (!order.session.isActive) {
       throw new Error(
         "لا يمكن حذف الطلب - الجلسة مغلقة بالفعل وتم تحصيل قيمتها. " +
@@ -332,28 +334,25 @@ export async function removeOrderFromSession(orderId: string, reason: string = "
       );
     }
 
-    // Cannot delete already deleted orders
     if (order.isDeleted) {
       throw new Error("الطلب محذوف بالفعل.");
     }
 
-    // Restore stock atomically
     await tx.inventoryItem.update({
       where: { id: order.inventoryItemId },
       data: { stock: { increment: order.quantity } },
     });
 
-    // Soft delete the order (preserves financial record for audit)
     await tx.order.update({
       where: { id: orderId },
       data: {
         isDeleted: true,
         deletedAt: new Date(),
         deletedByUserId: user.id,
+        deletionReason: reason,
       },
     });
-     
-    // Create audit log for order deletion
+
     await createAuditLog({
       action: "DELETE_ORDER",
       entityType: "Order",
@@ -362,6 +361,7 @@ export async function removeOrderFromSession(orderId: string, reason: string = "
       metadata: {
         deletedBy: user.id,
         orderId,
+        deletionReason: reason,
         timestamp: new Date().toISOString()
       }
     });

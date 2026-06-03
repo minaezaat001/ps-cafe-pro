@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { type Lang, type TranslationKey, translations } from './i18n';
 
 interface LanguageContextType {
@@ -45,8 +45,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return translations[lang][key] ?? translations.en[key] ?? key;
   }, [lang]);
 
+  const ctx = useMemo(() => ({ lang, toggleLanguage, t, isRTL: lang === 'ar' }), [lang, toggleLanguage, t]);
   return (
-    <LanguageContext.Provider value={{ lang, toggleLanguage, t, isRTL: lang === 'ar' }}>
+    <LanguageContext.Provider value={ctx}>
       {children}
     </LanguageContext.Provider>
   );

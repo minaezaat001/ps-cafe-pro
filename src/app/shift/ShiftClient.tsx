@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
-import { openShift, closeShift, logout } from "@/app/actions";
-import { getShiftItemsBreakdown } from "@/app/actions/shift.actions";
+import { openShift, closeShift, logout, getShiftItemsBreakdown } from "@/app/actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {

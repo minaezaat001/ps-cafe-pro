@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Monitor, Gamepad2, Tv, Laptop, Smartphone, Headset, Cpu } from 'lucide-react';
 import { intervalToDuration } from 'date-fns';
 import { toast } from 'sonner';
@@ -174,22 +174,14 @@ export function useDeviceCard({
     } catch (e) { console.error('Audio failed', e); }
   };
 
-  const calculateTotal = () => {
-    if (!session) return '0.00';
-    const breakdown = getBillBreakdown(session, device, now || undefined);
-    return (breakdown.total).toFixed(2);
-  };
+  const billBreakdown = useMemo(() => {
+    if (!session) return { single: 0, multi: 0, items: 0, gaming: 0, subtotal: 0, total: 0, segments: [] as any };
+    return getBillBreakdown(session, device, now ?? undefined);
+  }, [session, device, now]);
 
-  const getTimeCost = () => {
-    if (!session) return '0.00';
-    const breakdown = getBillBreakdown(session, device, now || undefined);
-    return breakdown.gaming.toFixed(2);
-  };
-
-  const getBillBreakdownLocal = () => {
-    if (!session) return { single: 0, multi: 0, items: 0, gaming: 0, subtotal: 0, segments: [] as any };
-    return getBillBreakdown(session, device, now || undefined);
-  };
+  const calculateTotal = useCallback(() => billBreakdown.total.toFixed(2), [billBreakdown.total]);
+  const getTimeCost = useCallback(() => billBreakdown.gaming.toFixed(2), [billBreakdown.gaming]);
+  const getBillBreakdownLocal = useCallback(() => billBreakdown, [billBreakdown]);
 
   useEffect(() => {
     if (showOrderModal) getActiveInventoryForOrders().then(setInventory);
@@ -306,9 +298,11 @@ export function useDeviceCard({
   };
 
   const handleRemoveOrder = async (orderId: string) => {
+    const reason = prompt(isRTL ? "سبب حذف الطلب:" : "Reason for deleting order:");
+    if (!reason || reason.trim().length === 0) return;
     try {
       setIsPending(true);
-      await removeOrderFromSession(orderId);
+      await removeOrderFromSession(orderId, reason.trim());
       await syncDashboard();
       toast.success(t('device.orderRemoved'));
     } catch { toast.error('Failed to remove order'); }
@@ -361,7 +355,7 @@ export function useDeviceCard({
       } else {
         setRemainingLabel(null);
       }
-    }, 1000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [session, showCheckoutModal]);
 

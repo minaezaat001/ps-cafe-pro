@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -40,8 +40,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Prevent hydration mismatch flash by showing children only after mounting
   // but keeping the component structure identical to avoid hook issues.
+  const ctx = useMemo(() => ({ theme: mounted ? theme : 'dark', toggleTheme }), [mounted, theme, toggleTheme]);
   return (
-    <ThemeContext.Provider value={{ theme: mounted ? theme : 'dark', toggleTheme }}>
+    <ThemeContext.Provider value={ctx}>
       <div style={{ visibility: mounted ? 'visible' : 'hidden' }}>
         {children}
       </div>

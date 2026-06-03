@@ -7,6 +7,7 @@ export type DashboardDeviceSnapshot = {
   type: string;
   hourlyRateSingle: number;
   hourlyRateMulti: number;
+  pricingMultiplier: number;
   sessions: DashboardSessionSnapshot[];
 };
 
@@ -66,60 +67,64 @@ export type DashboardSessionSnapshot = {
   };
 };
 
-export function serializeDashboardDevice(device: {
-  id: string;
-  number: string;
-  type: string;
-  hourlyRateSingle: unknown;
-  hourlyRateMulti: unknown;
-  sessions: Array<{
+export function serializeDashboardDevice(
+  device: {
     id: string;
-    deviceId: string;
-    userId: string;
-    endedByUserId: string | null;
-    startTime: Date;
-    endTime: Date | null;
+    number: string;
     type: string;
-    durationMinutes: number | null;
-    isMulti: boolean;
-    isActive: boolean;
-    accumulatedTimeCost: unknown;
-    accumulatedSingleCost: unknown;
-    accumulatedMultiCost: unknown;
-    lastRateChangeTime: Date;
-    shiftId: string | null;
-    orders: Array<{
+    hourlyRateSingle: unknown;
+    hourlyRateMulti: unknown;
+    sessions: Array<{
       id: string;
-      quantity: number;
-      priceAtTime: unknown;
-      status: string;
-      inventoryItem: { id: string; name: string; category: string; price: unknown };
-    }>;
-    segments: Array<{
-      id: string;
-      deviceName: string;
-      deviceType: string;
-      mode: string;
+      deviceId: string;
+      userId: string;
+      endedByUserId: string | null;
       startTime: Date;
-      endTime: Date;
-      durationMins: number;
-      cost: unknown;
-    }>;
-    device: {
-      id: string;
-      number: string;
+      endTime: Date | null;
       type: string;
-      hourlyRateSingle: unknown;
-      hourlyRateMulti: unknown;
-    };
-  }>;
-}): DashboardDeviceSnapshot {
+      durationMinutes: number | null;
+      isMulti: boolean;
+      isActive: boolean;
+      accumulatedTimeCost: unknown;
+      accumulatedSingleCost: unknown;
+      accumulatedMultiCost: unknown;
+      lastRateChangeTime: Date;
+      shiftId: string | null;
+      orders: Array<{
+        id: string;
+        quantity: number;
+        priceAtTime: unknown;
+        status: string;
+        inventoryItem: { id: string; name: string; category: string; price: unknown };
+      }>;
+      segments: Array<{
+        id: string;
+        deviceName: string;
+        deviceType: string;
+        mode: string;
+        startTime: Date;
+        endTime: Date;
+        durationMins: number;
+        cost: unknown;
+      }>;
+      device: {
+        id: string;
+        number: string;
+        type: string;
+        hourlyRateSingle: unknown;
+        hourlyRateMulti: unknown;
+      };
+    }>;
+  },
+  pricingMultiplier: number = 1
+): DashboardDeviceSnapshot {
   return {
     id: device.id,
     number: device.number,
     type: device.type,
     hourlyRateSingle: decToNumber(device.hourlyRateSingle),
     hourlyRateMulti: decToNumber(device.hourlyRateMulti),
+    pricingMultiplier,
     sessions: device.sessions.map((s) => ({
       id: s.id,
       deviceId: s.deviceId,

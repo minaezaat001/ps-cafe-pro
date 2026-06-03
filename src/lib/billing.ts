@@ -25,6 +25,7 @@ export interface SessionSegmentData {
 export interface SessionData {
   startTime: Date | string;
   lastRateChangeTime: Date | string | null;
+  lastHeartbeat?: Date | string | null;
   endTime?: Date | string | null;
   isActive: boolean;
   isMulti: boolean;
@@ -36,11 +37,14 @@ export interface SessionData {
   segments?: SessionSegmentData[];
 }
 
+const HEARTBEAT_STALE_MS = 5 * 60 * 1000; // 5 minutes
+
 export interface DeviceData {
   number?: string;
   type?: string;
   hourlyRateSingle: number | unknown;
   hourlyRateMulti: number | unknown;
+  pricingMultiplier?: number;
 }
 
 /**
@@ -52,7 +56,13 @@ export function calculateActualElapsedCost(session: SessionData, device: DeviceD
   const startTs = new Date(session.startTime).getTime();
   const lastChangeTs = new Date(session.lastRateChangeTime || session.startTime).getTime();
   
-  let endTs = session.isActive ? now : new Date(session.endTime!).getTime();
+  let endTs = new Date(session.endTime!).getTime();
+  if (session.isActive) {
+    const heartbeatTs = session.lastHeartbeat
+      ? new Date(session.lastHeartbeat).getTime()
+      : now;
+    endTs = (now - heartbeatTs > HEARTBEAT_STALE_MS) ? heartbeatTs : now;
+  }
   
   // Cap for FIXED sessions
   if (session.type === 'FIXED' && session.durationMinutes) {
@@ -61,8 +71,9 @@ export function calculateActualElapsedCost(session: SessionData, device: DeviceD
   }
 
   const hours = Math.max(0, (endTs - lastChangeTs) / 3600000);
-  const rate = session.isMulti ? n(device.hourlyRateMulti) : n(device.hourlyRateSingle);
-  return hours * rate;
+  const baseRate = session.isMulti ? n(device.hourlyRateMulti) : n(device.hourlyRateSingle);
+  const multiplier = device.pricingMultiplier ?? 1;
+  return hours * baseRate * multiplier;
 }
 
 /**
@@ -82,7 +93,13 @@ export function calculateSessionTimeCost(session: SessionData, device: DeviceDat
   
   const actualTotalCost = n(session.accumulatedTimeCost) + currentSegmentCost;
 
-  let endTs = session.isActive ? now : new Date(session.endTime!).getTime();
+  let endTs = new Date(session.endTime!).getTime();
+  if (session.isActive) {
+    const heartbeatTs = session.lastHeartbeat
+      ? new Date(session.lastHeartbeat).getTime()
+      : now;
+    endTs = (now - heartbeatTs > HEARTBEAT_STALE_MS) ? heartbeatTs : now;
+  }
   if (session.type === 'FIXED' && session.durationMinutes) {
     const scheduledEnd = startTs + (session.durationMinutes * 60000);
     endTs = Math.min(endTs, scheduledEnd);
@@ -94,7 +111,7 @@ export function calculateSessionTimeCost(session: SessionData, device: DeviceDat
   let finalCost = actualTotalCost;
 
   if (totalElapsedMinutes < MIN_CHARGE_MINUTES) {
-    const currentRate = session.isMulti ? n(device.hourlyRateMulti) : n(device.hourlyRateSingle);
+    const currentRate = (session.isMulti ? n(device.hourlyRateMulti) : n(device.hourlyRateSingle)) * (device.pricingMultiplier ?? 1);
     finalCost = MIN_CHARGE_HOURS * currentRate;
   }
 
