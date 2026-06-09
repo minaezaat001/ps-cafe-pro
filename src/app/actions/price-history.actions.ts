@@ -34,6 +34,6 @@ export async function getPriceHistory(
     action: l.action,
     createdAt: l.createdAt.toISOString(),
     changedBy: l.user?.username ?? "system",
-    changes: (typeof l.metadata === 'string' ? JSON.parse(l.metadata) : l.metadata)?.changes ?? {},
+    changes: (l.metadata as any)?.changes ?? {},
   }));
 }

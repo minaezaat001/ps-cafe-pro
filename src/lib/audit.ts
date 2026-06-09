@@ -46,7 +46,7 @@ export async function createAuditLog(data: AuditLogData, tx?: TxLike) {
         entityType: data.entityType,
         entityId: data.entityId || "unknown",
         reason: data.reason,
-        metadata: data.metadata ? JSON.stringify(data.metadata) : undefined,
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : undefined,
         tenantId: jwt?.tenantId ?? null,
       },
     });

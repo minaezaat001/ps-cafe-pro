@@ -4,18 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:sqlite": "dotenv -e .env.sqlite -- next dev",
     "build": "next build",
-    "build:sqlite": "dotenv -e .env.sqlite -- next build",
     "start": "next start",
-    "start:sqlite": "dotenv -e .env.sqlite -- next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
-    "db:sqlite:generate": "dotenv -e .env.sqlite -- prisma generate --schema=prisma/schema.sqlite.prisma",
-    "db:sqlite:push": "dotenv -e .env.sqlite -- prisma db push --schema=prisma/schema.sqlite.prisma",
-    "db:sqlite:studio": "dotenv -e .env.sqlite -- prisma studio --schema=prisma/schema.sqlite.prisma",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
@@ -43,7 +35,6 @@
     "@types/node": "^20.19.37",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "prisma": "^6.19.2",
