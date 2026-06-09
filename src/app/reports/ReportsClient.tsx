@@ -384,7 +384,8 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
       </div>
 
       {/* Invoice Modal */}
-      <ModalShell isOpen={!!selectedInvoice} onClose={() => setSelectedInvoice(null)} maxWidth="max-w-4xl">
+      {!!selectedInvoice && (
+      <ModalShell isOpen onClose={() => setSelectedInvoice(null)} maxWidth="max-w-4xl">
         <div className="flex items-center gap-3 mb-7">
           <div className="p-3 rounded-xl bg-blue-500/15 text-blue-400"><FileText className="w-5 h-5" /></div>
           <div>
@@ -540,6 +541,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                 </div>
               )}
       </ModalShell>
+      )}
     </div>
   );
 }
