@@ -179,7 +179,7 @@ export function snapshotRevision(devices: DashboardDeviceSnapshot[]): string {
     .map((d) => {
       const s = d.sessions[0];
       if (!s) return `${d.id}:idle`;
-      const orderSig = s.orders.map((o) => `${o.id}:${o.quantity}`).join(",");
+      const orderSig = s.orders.map((o) => `${o.id}:${o.quantity}:${o.status}`).join(",");
       return `${d.id}:${s.id}:${s.lastRateChangeTime}:${orderSig}:${s.isMulti}:${s.accumulatedTimeCost}:${s.accumulatedSingleCost}:${s.accumulatedMultiCost}`;
     })
     .join("|");
