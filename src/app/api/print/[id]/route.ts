@@ -59,7 +59,7 @@ function buildThermalReceipt(data: any, cafeName: string): string {
 <table>
   <tr><td style="font-size:10px;"># INV-${invNum}</td><td style="font-size:10px;text-align:right;">${printDate}</td></tr>
   ${data.staff ? `<tr><td style="font-size:10px;">Staff / موظف</td><td style="font-size:10px;text-align:right;font-weight:bold;">${data.staff}</td></tr>` : ''}
-  ${data.device ? `<tr><td style="font-size:10px;">Station / جهاز</td><td style="font-size:10px;text-align:right;font-weight:bold;">#${data.device.number} — ${data.device.type}</td></tr>` : ''}
+  ${data.device ? `<tr><td style="font-size:10px;">Device / جهاز</td><td style="font-size:10px;text-align:right;font-weight:bold;">${data.device.number} — ${data.device.type}</td></tr>` : ''}
   ${data.type === 'SESSION' ? `
   <tr><td style="font-size:10px;">Time / الوقت</td><td style="font-size:10px;text-align:right;font-weight:bold;">${startTime} → ${endTime}</td></tr>
   <tr><td style="font-size:10px;">Mode / النوع</td><td style="font-size:10px;text-align:right;font-weight:bold;">${data.isMulti ? 'Multi / متعدد' : 'Single / فردي'}</td></tr>` : ''}

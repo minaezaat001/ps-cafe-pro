@@ -170,7 +170,7 @@ export function getBillBreakdown(session: SessionData, device: DeviceData, nowOv
   // Exclude deleted orders and pending/cancelled orders from cost calculation (business rule: deleted/pending orders aren't charged)
   const itemsCost =
     (session as { orders?: { priceAtTime: unknown; quantity: number; isDeleted?: boolean; status?: string }[] }).orders
-      ?.filter(o => (!('isDeleted' in o) || !o.isDeleted) && (!('status' in o) || o.status === 'DELIVERED'))
+      ?.filter(o => (!('isDeleted' in o) || !o.isDeleted) && (!('status' in o) || o.status !== 'CANCELLED'))
       ?.reduce((acc, o) => acc + n(o.priceAtTime) * o.quantity, 0) || 0;
 
   const subtotal = gamingTotal + itemsCost;

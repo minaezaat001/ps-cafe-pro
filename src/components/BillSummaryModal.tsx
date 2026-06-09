@@ -47,8 +47,8 @@ export default function BillSummaryModal({
 
           <div className="max-h-[60vh] overflow-y-auto">
           <div className="flex justify-between text-base pb-3 border-b border-border">
-            <span className="text-muted-foreground text-sm font-bold uppercase">{t('device.station')}</span>
-            <span className="font-black" style={{ color: accent.hex }}>#{device.number} ({device.type})</span>
+            <span className="text-muted-foreground text-sm font-bold uppercase">{device.number}</span>
+            <span className="font-black" style={{ color: accent.hex }}>{device.type}</span>
           </div>
           <div className="flex justify-between text-base pb-3 border-b border-border">
             <span className="text-muted-foreground text-sm font-bold uppercase">{t('device.startedAt')}</span>

@@ -203,7 +203,7 @@ function DeviceCardInner({
           open={showQrModal}
           onClose={() => setShowQrModal(false)}
           menuUrl={`${menuBaseUrl.replace(/\/$/, "")}/menu/${device.id}`}
-          deviceLabel={`#${device.number}`}
+          deviceLabel={device.number}
           isRTL={isRTL}
         />
       ) : null}
@@ -228,7 +228,7 @@ function DeviceCardInner({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded text-muted-foreground flex items-center justify-center bg-background">{deviceIcon}</div>
           <div className="text-start">
-            <h3 className="font-black text-sm text-foreground">#{device.number}</h3>
+            <h3 className="font-black text-sm text-foreground">{device.number}</h3>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{device.type}</p>
           </div>
           {showQrButton && menuBaseUrl && (
@@ -319,7 +319,7 @@ function DeviceCardInner({
             </div>
             <div className="text-start">
               <div className={cn('flex items-center gap-2', isRTL && 'flex-row-reverse')}>
-                <h3 className="text-lg font-black text-foreground leading-tight">#{device.number}</h3>
+                <h3 className="text-lg font-black text-foreground leading-tight">{device.number}</h3>
               </div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 {device.type === 'PRIVATE' ? t('inventory.private') : device.type}

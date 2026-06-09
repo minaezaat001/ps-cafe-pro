@@ -113,7 +113,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
         hourlyRateMulti: Number(formData.hourlyRateMulti) || 0
       });
       router.refresh();
-      toast.success(`${t('devices.stationNumber')} #${formData.number} added!`);
+      toast.success(`${t('devices.stationNumber')} ${formData.number} added!`);
       setShowAddModal(false); resetForm();
     } catch (err: any) { toast.error(err.message || 'Failed'); }
     finally { setIsPending(false); }
@@ -249,7 +249,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
               </div>
               {user?.role === 'ADMIN' && (
                 <div className="flex gap-2">
-                  <button onClick={() => setPriceHistoryFor({ id: device.id, name: `Station #${device.number}` })}
+                  <button onClick={() => setPriceHistoryFor({ id: device.id, name: `${device.number}` })}
                     className="p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-blue-400 transition-colors"
                     title="Price History">
                     <History className="w-4 h-4" />
@@ -267,7 +267,7 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
             </div>
 
             <div className={cn('mb-5', isRTL && 'text-right')}>
-              <h3 className="text-lg font-black text-foreground mb-0.5">Station #{device.number}</h3>
+              <h3 className="text-lg font-black text-foreground mb-0.5">{device.number}</h3>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{device.type} {t('devices.configuration')}</p>
             </div>
 
@@ -610,9 +610,9 @@ export default function DevicesManagerPage({ initialDevices, deviceTypes, user }
                             })()}
                           </div>
                           <div>
-                            <h3 className="text-xl font-black text-foreground leading-tight">#99</h3>
+                            <h3 className="text-xl font-black text-foreground leading-tight">99</h3>
                             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                              {newTypeName || "Station Name"}
+                              {newTypeName || "Device Name"}
                             </p>
                           </div>
                         </div>

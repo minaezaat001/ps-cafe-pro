@@ -62,7 +62,7 @@ export default function CheckoutModal({
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-black text-foreground">
-              {t('device.checkoutSettlement')} <span style={{ color: accent.hex }}>#{device.number}</span>
+              {t('device.checkoutSettlement')} <span style={{ color: accent.hex }}>{device.number}</span>
             </h2>
             <p className="text-[13px] text-muted-foreground mt-0.5">{t('device.finalizingDevice')}{device.number}</p>
           </div>

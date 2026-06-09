@@ -356,7 +356,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                         </div>
                       </td>
                       <td className="px-6 py-5 text-xs font-bold text-muted-foreground">
-                        {isSession ? `${t('reports.stationSource')}${item.device.number}` : (isTransaction ? item.description : t('reports.quickSale'))}
+                        {isSession ? `${item.device.number}` : (isTransaction ? item.description : t('reports.quickSale'))}
                       </td>
                       <td className="px-6 py-5 text-xs text-muted-foreground">{format(date, 'MMM dd, HH:mm')}</td>
                       <td className="px-6 py-5">
@@ -399,7 +399,7 @@ export default function ReportsClient({ data, performance }: ReportsClientProps)
                   <span className="text-muted-foreground font-bold uppercase">{t('reports.source')}</span>
                   <span className="text-foreground font-black">
                     {selectedInvoice.startTime 
-                      ? `${t('reports.stationSource')}${selectedInvoice.device.number}` 
+                      ? `${selectedInvoice.device.number}` 
                       : (selectedInvoice.type ? (isRTL ? (selectedInvoice.type === 'INCOME' ? 'إيداع' : 'مسحوبات') : selectedInvoice.type) : t('reports.quickSale'))}
                   </span>
                 </div>

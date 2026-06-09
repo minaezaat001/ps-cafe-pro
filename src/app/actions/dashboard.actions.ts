@@ -47,6 +47,7 @@ export async function getDashboardData() {
           where: {
             ...(tenantWhere ?? {}),
           },
+          orderBy: { id: "asc" },
           include: {
             sessions: {
               where: { isActive: true },
@@ -197,16 +198,10 @@ export async function getDashboardData() {
       },
     });
 
-    const devicesSorted = devicesRaw.sort((a, b) => {
-      const na = parseInt(a.number, 10) || 0;
-      const nb = parseInt(b.number, 10) || 0;
-      return na - nb;
-    });
-
     return {
-      devices: devicesSorted,
+      devices: devicesRaw,
       stats: {
-        activeDevices: `${activeUsers}/${devicesSorted.length}`,
+        activeDevices: `${activeUsers}/${devicesRaw.length}`,
         activeDevicesTrend: "Real-time occupancy",
         totalRevenue: `${todayRev.total.toFixed(0)} LE`,
         totalRevenueTrend: getTrend(todayRev.total, yesterdayRev.total),
@@ -251,6 +246,7 @@ export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotR
       where: {
         ...(Object.keys(tenantFilter).length > 0 ? tenantFilter : {}),
       },
+      orderBy: { id: "asc" },
       include: {
         sessions: {
           where: { isActive: true },
@@ -261,11 +257,6 @@ export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotR
           },
         },
       },
-    });
-    raw.sort((a, b) => {
-      const na = parseInt(a.number, 10) || 0;
-      const nb = parseInt(b.number, 10) || 0;
-      return na - nb;
     });
 
     const devices = (raw as any[])

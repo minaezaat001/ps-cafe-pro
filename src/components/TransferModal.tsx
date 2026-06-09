@@ -43,7 +43,7 @@ export default function TransferModal({
           {availableDevices.map(d => (
             <button key={d.id} onClick={() => onTransfer(d.id)}
               className="w-full p-4 rounded-xl border border-border bg-card hover:bg-muted transition-all flex justify-between items-center group">
-              <span className="font-bold text-base text-foreground">Station #{d.number} ({d.type})</span>
+              <span className="font-bold text-base text-foreground">{d.number} ({d.type})</span>
               <ArrowRightLeft className="w-4 h-4 text-muted-foreground group-hover:text-violet-400 transition-colors" />
             </button>
           ))}
