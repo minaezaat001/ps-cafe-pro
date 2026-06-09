@@ -213,7 +213,7 @@ export async function processQuickSale(items: { itemId: string; quantity: number
       saleItems.push({
         inventoryItemId: item.itemId,
         quantity: item.quantity,
-        priceAtTime: decToNumber(inventoryItem.price),
+        priceAtTime: inventoryItem.price,
       });
       
       saleDetails.push({
