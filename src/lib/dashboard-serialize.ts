@@ -189,8 +189,8 @@ export function serializeShift(shift: any): DashboardShiftSnapshot | null {
   if (!shift) return null;
   return {
     id: shift.id,
-    openedAt: shift.openedAt.toISOString(),
-    closedAt: shift.closedAt?.toISOString() ?? null,
+    openedAt: shift.openedAt?.toISOString?.() ?? String(shift.openedAt),
+    closedAt: shift.closedAt?.toISOString?.() ?? null,
     openedByUserId: shift.openedByUserId,
     closedByUserId: shift.closedByUserId,
     openingFloat: decToNumber(shift.openingFloat),
@@ -211,7 +211,7 @@ export function serializeFinancialTransaction(tx: any) {
   return {
     ...tx,
     amount: decToNumber(tx.amount),
-    createdAt: tx.createdAt.toISOString(),
+    createdAt: tx.createdAt?.toISOString?.() ?? String(tx.createdAt),
     user: tx.user ? {
       id: tx.user.id,
       username: tx.user.username,
@@ -228,9 +228,9 @@ export function serializeReportData(data: any) {
       accumulatedTimeCost: decToNumber(s.accumulatedTimeCost),
       accumulatedSingleCost: decToNumber(s.accumulatedSingleCost),
       accumulatedMultiCost: decToNumber(s.accumulatedMultiCost),
-      startTime: s.startTime.toISOString(),
-      endTime: s.endTime?.toISOString() ?? null,
-      lastRateChangeTime: s.lastRateChangeTime ? s.lastRateChangeTime.toISOString() : undefined,
+      startTime: s.startTime?.toISOString?.() ?? String(s.startTime),
+      endTime: s.endTime?.toISOString?.() ?? null,
+      lastRateChangeTime: s.lastRateChangeTime?.toISOString?.() ?? null,
       device: s.device ? { 
         id: s.device.id, 
         number: s.device.number,
@@ -241,7 +241,7 @@ export function serializeReportData(data: any) {
       orders: (s.orders || []).map((o: any) => ({
         ...o,
         priceAtTime: decToNumber(o.priceAtTime),
-        createdAt: o.createdAt ? o.createdAt.toISOString() : undefined,
+        createdAt: o.createdAt?.toISOString?.() ?? null,
         inventoryItem: o.inventoryItem ? {
           ...o.inventoryItem,
           price: decToNumber(o.inventoryItem.price),
@@ -250,14 +250,14 @@ export function serializeReportData(data: any) {
       segments: (s.segments || []).map((seg: any) => ({
         ...seg,
         cost: decToNumber(seg.cost),
-        startTime: seg.startTime?.toISOString(),
-        endTime: seg.endTime?.toISOString(),
+        startTime: seg.startTime?.toISOString?.() ?? null,
+        endTime: seg.endTime?.toISOString?.() ?? null,
       })),
     })),
     sales: (data.sales || []).map((s: any) => ({
       ...s,
       totalAmount: decToNumber(s.totalAmount),
-      createdAt: s.createdAt.toISOString(),
+      createdAt: s.createdAt?.toISOString?.() ?? String(s.createdAt),
       items: (s.items || []).map((i: any) => ({
         ...i,
         priceAtTime: decToNumber(i.priceAtTime),
