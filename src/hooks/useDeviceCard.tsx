@@ -355,7 +355,7 @@ export function useDeviceCard({
       } else {
         setRemainingLabel(null);
       }
-    }, 10000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [session, showCheckoutModal]);
 
