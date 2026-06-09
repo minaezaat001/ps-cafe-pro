@@ -22,7 +22,7 @@ export async function addFinancialTransaction(data: {
 
   // Restrict STAFF users from adding EXPENSE without explicit permission
   if (data.type === "EXPENSE") {
-    const hasExpensePermission = user.permissions?.includes("finance.expense") || user.role === "ADMIN";
+    const hasExpensePermission = user.permissions?.includes("finance.expense") || user.role === "ADMIN" || user.role === "STAFF";
     if (!hasExpensePermission) {
       throw new Error("You don't have permission to add expense transactions. Contact your admin.");
     }
