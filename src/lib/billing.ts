@@ -58,10 +58,7 @@ export function calculateActualElapsedCost(session: SessionData, device: DeviceD
   
   let endTs = new Date(session.endTime!).getTime();
   if (session.isActive) {
-    const heartbeatTs = session.lastHeartbeat
-      ? new Date(session.lastHeartbeat).getTime()
-      : now;
-    endTs = (now - heartbeatTs > HEARTBEAT_STALE_MS) ? heartbeatTs : now;
+    endTs = now;
   }
   
   // Cap for FIXED sessions
@@ -95,10 +92,7 @@ export function calculateSessionTimeCost(session: SessionData, device: DeviceDat
 
   let endTs = new Date(session.endTime!).getTime();
   if (session.isActive) {
-    const heartbeatTs = session.lastHeartbeat
-      ? new Date(session.lastHeartbeat).getTime()
-      : now;
-    endTs = (now - heartbeatTs > HEARTBEAT_STALE_MS) ? heartbeatTs : now;
+    endTs = now;
   }
   if (session.type === 'FIXED' && session.durationMinutes) {
     const scheduledEnd = startTs + (session.durationMinutes * 60000);

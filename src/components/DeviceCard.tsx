@@ -573,6 +573,7 @@ function DeviceCardInner({
 export const DeviceCard = React.memo(DeviceCardInner, (prev, next) => {
   return prev.device.id === next.device.id
     && prev.session?.id === next.session?.id
+    && prev.session?.orders?.length === next.session?.orders?.length
     && prev.isCompact === next.isCompact
     && prev.activeShift === next.activeShift;
 });

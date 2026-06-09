@@ -41,7 +41,7 @@ export async function getDashboardData() {
         ? (tenantFilter as { tenantId: string })
         : null;
 
-    const [devices, todaySessions, todaySales, yesterdaySessions, yesterdaySales, todayTransactions, yesterdayTransactions] =
+    const [rawDevices, todaySessions, todaySales, yesterdaySessions, yesterdaySales, todayTransactions, yesterdayTransactions] =
       await Promise.all([
         prisma.device.findMany({
           where: {
@@ -104,7 +104,7 @@ export async function getDashboardData() {
         }),
       ]);
 
-    const devicesRaw = (devices as any[]).filter(d => !d.isDeleted);
+    const devicesRaw = (rawDevices as any[]).filter(d => !d.isDeleted);
     const todaySalesRaw = (todaySales as any[]).filter(s => !s.isDeleted);
     const yesterdaySalesRaw = (yesterdaySales as any[]).filter(s => !s.isDeleted);
 
@@ -125,7 +125,7 @@ export async function getDashboardData() {
       endedSessions: typeof todaySessions,
       sales: typeof todaySales,
       transactions: { type: string; amount: unknown }[] = [],
-      allDevices: typeof devices = []
+      allDevices: any[] = []
     ) => {
       let gaming = 0;
       endedSessions.forEach((s) => {
@@ -133,7 +133,7 @@ export async function getDashboardData() {
       });
 
       allDevices.forEach((device) => {
-        device.sessions.forEach((s) => {
+        device.sessions.forEach((s: any) => {
           if (s.isActive) {
             gaming += calculateSessionTimeCost(s, device);
           }
@@ -148,11 +148,11 @@ export async function getDashboardData() {
       });
 
       allDevices.forEach((device) => {
-        device.sessions.forEach((s) => {
+        device.sessions.forEach((s: any) => {
           if (s.isActive) {
             cafeteria += (s.orders || [])
-              .filter(o => !o.isDeleted)
-              .reduce((acc, o) => acc + decToNumber(o.priceAtTime) * o.quantity, 0);
+              .filter((o: any) => !o.isDeleted)
+              .reduce((acc: number, o: any) => acc + decToNumber(o.priceAtTime) * o.quantity, 0);
           }
         });
       });
@@ -197,10 +197,16 @@ export async function getDashboardData() {
       },
     });
 
+    const devicesSorted = devicesRaw.sort((a, b) => {
+      const na = parseInt(a.number, 10) || 0;
+      const nb = parseInt(b.number, 10) || 0;
+      return na - nb;
+    });
+
     return {
-      devices,
+      devices: devicesSorted,
       stats: {
-        activeDevices: `${activeUsers}/${devices.length}`,
+        activeDevices: `${activeUsers}/${devicesSorted.length}`,
         activeDevicesTrend: "Real-time occupancy",
         totalRevenue: `${todayRev.total.toFixed(0)} LE`,
         totalRevenueTrend: getTrend(todayRev.total, yesterdayRev.total),
@@ -245,7 +251,6 @@ export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotR
       where: {
         ...(Object.keys(tenantFilter).length > 0 ? tenantFilter : {}),
       },
-      orderBy: { number: "asc" },
       include: {
         sessions: {
           where: { isActive: true },
@@ -256,6 +261,11 @@ export async function getDevicesSnapshotForDashboard(): Promise<DevicesSnapshotR
           },
         },
       },
+    });
+    raw.sort((a, b) => {
+      const na = parseInt(a.number, 10) || 0;
+      const nb = parseInt(b.number, 10) || 0;
+      return na - nb;
     });
 
     const devices = (raw as any[])
