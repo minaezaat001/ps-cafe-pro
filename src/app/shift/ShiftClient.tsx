@@ -412,8 +412,7 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
       )}
 
       {/* ── Detail Modal ── */}
-      {!!detailShift && (
-      <ModalShell isOpen onClose={() => setDetailShift(null)} accentColor="border-indigo-500" maxWidth="max-w-2xl">
+      <ModalShell isOpen={!!detailShift} onClose={() => setDetailShift(null)} accentColor="border-indigo-500" maxWidth="max-w-2xl">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-black text-foreground flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-violet-400" />
@@ -478,11 +477,9 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                 )}
               </div>
       </ModalShell>
-      )}
 
       {/* ── Drinks Summary Modal ── */}
-      {!!drinksShift && (
-      <ModalShell isOpen onClose={() => setDrinksShift(null)} accentColor="border-amber-500" maxWidth="max-w-2xl">
+      <ModalShell isOpen={!!drinksShift} onClose={() => setDrinksShift(null)} accentColor="border-amber-500" maxWidth="max-w-2xl">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
             <Coffee className="w-5 h-5 text-amber-400" />
@@ -575,7 +572,6 @@ export default function ShiftClient({ activeShift, summary, shiftHistory }: Shif
                 </div>
               )}
       </ModalShell>
-      )}
 
       {/* ── Open Shift Modal ── */}
       <ModalShell isOpen={showOpenModal} onClose={() => setShowOpenModal(false)} accentColor="border-blue-500">
