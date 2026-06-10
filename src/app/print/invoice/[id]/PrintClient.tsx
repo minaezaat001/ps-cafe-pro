@@ -89,7 +89,7 @@ export default function PrintClient({ invoiceData, paperSize }: PrintClientProps
         .center { text-align: center; }
         .big { font-size: 1.5em; font-weight: 900; letter-spacing: 1px; }
         .xlarge { font-size: 1.8em; font-weight: 900; }
-        .tag { border: 1px solid #000; padding: 1px 5px; font-size: 0.8em; font-weight: bold; border-radius: 3px; display: inline-block; margin: 2px 0; border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .tag { border: 1px solid #000; padding: 1px 5px; font-size: 0.8em; font-weight: bold; border-radius: 3px; display: inline-block; margin: 2px 0; }
         .no-print { position: fixed; bottom: 16px; left: 16px; padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
       `}</style>
 
