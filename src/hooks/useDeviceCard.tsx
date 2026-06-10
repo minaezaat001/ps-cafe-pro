@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Monitor, Gamepad2, Tv, Laptop, Smartphone, Headset, Cpu } from 'lucide-react';
 import { intervalToDuration } from 'date-fns';
 import { toast } from 'sonner';
@@ -81,7 +81,7 @@ export function useDeviceCard({
   const [inventory, setInventory] = useState<any[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
   const [isMounted, setIsMounted] = useState(false);
-  const [now, setNow] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [showAddTimeModal, setShowAddTimeModal] = useState(false);
   const [extraMinutes, setExtraMinutes] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -89,6 +89,11 @@ export function useDeviceCard({
   const [selectedOrderCategory, setSelectedOrderCategory] = useState<string>('All');
   const [lastClickedItemId, setLastClickedItemId] = useState<string | null>(null);
   const [showQrModal, setShowQrModal] = useState(false);
+  const showCheckoutModalRef = useRef(showCheckoutModal);
+
+  useEffect(() => {
+    showCheckoutModalRef.current = showCheckoutModal;
+  }, [showCheckoutModal]);
 
   const syncDashboard = async () => {
     if (onMutationComplete) await onMutationComplete();
@@ -310,20 +315,25 @@ export function useDeviceCard({
   };
 
   useEffect(() => {
-    if (!session || !session.isActive) return;
-    setNow(Date.now());
-    const interval = setInterval(() => {
-      const currentNow = Date.now() + serverTimeOffset;
-      setNow(currentNow);
+    if (!session || !session.isActive) {
+      setElapsed('00:00:00');
+      setRemainingLabel(null);
+      return;
+    }
+
+    const initialNow = Date.now() + serverTimeOffset;
+    setNow(initialNow);
+
+    const calcElapsed = (now: number) => {
       const startMs = new Date(session.startTime).getTime();
       if (Number.isNaN(startMs)) return;
-      let diff = currentNow - startMs;
+      let diff = now - startMs;
       if (diff < 0) diff = 0;
       const totalMs = session.type === 'FIXED' && session.durationMinutes ? session.durationMinutes * 60000 : Infinity;
 
       if (diff >= totalMs) {
         diff = totalMs;
-        if (!showCheckoutModal && session.type === 'FIXED') {
+        if (!showCheckoutModalRef.current && session.type === 'FIXED') {
           setShowCheckoutModal(true);
         }
       }
@@ -355,9 +365,17 @@ export function useDeviceCard({
       } else {
         setRemainingLabel(null);
       }
+    };
+
+    calcElapsed(initialNow);
+
+    const interval = setInterval(() => {
+      const currentNow = Date.now() + serverTimeOffset;
+      setNow(currentNow);
+      calcElapsed(currentNow);
     }, 1000);
     return () => clearInterval(interval);
-  }, [session, showCheckoutModal]);
+  }, [session]);
 
   const inputCls = "w-full bg-card border border-border rounded-xl py-3 px-4 outline-none text-base font-semibold text-foreground placeholder:text-muted-foreground focus:border-blue-500/50 transition-colors";
   const selectCls = `${inputCls} cursor-pointer`;
