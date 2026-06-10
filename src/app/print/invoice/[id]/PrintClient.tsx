@@ -75,15 +75,15 @@ export default function PrintClient({ invoiceData, paperSize }: PrintClientProps
 
   const pageStyle = isThermal
     ? `@page { size: 80mm auto; margin: 3mm 4mm; }`
-    : `@page { size: A4; margin: 15mm 20mm; } #print-root { max-width: 180mm !important; margin: 0 auto; }`;
+    : `@page { size: A4; margin: 15mm 20mm; } #print-root { max-width: 180mm !important; margin: 0 auto; } body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }`;
 
   return (
     <>
       <style>{`
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: ${isThermal ? '11px' : '15px'}; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: ${isThermal ? '13px' : '17px'}; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; -webkit-font-smoothing: auto; }
         ${pageStyle}
-        @media print { .no-print { display: none !important; } body { padding: 0; color: #000 !important; } }
+        @media print { .no-print { display: none !important; } body { padding: 0; } }
         .separator { border: none; border-top: 1px dashed #000; margin: 6px 0; }
         .double-sep { border: none; border-top: 2px solid #000; margin: 6px 0; }
         .center { text-align: center; }

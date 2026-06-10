@@ -17,7 +17,7 @@ function buildThermalReceipt(data: any, cafeName: string): string {
 
   const ordersHtml = data.orders?.length
     ? data.orders.map((o: any) =>
-        `<tr><td style="padding:2px 4px;font-size:11px;">${o.name} ×${o.quantity}</td><td style="padding:2px 4px;font-size:11px;text-align:right;">${(Number(o.priceAtTime) * o.quantity).toFixed(2)}</td></tr>`
+        `<tr><td style="padding:2px 4px;font-size:13px;">${o.name} ×${o.quantity}</td><td style="padding:2px 4px;font-size:13px;text-align:right;">${(Number(o.priceAtTime) * o.quantity).toFixed(2)}</td></tr>`
       ).join('')
     : '';
 
@@ -33,12 +33,12 @@ function buildThermalReceipt(data: any, cafeName: string): string {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 11px; color: #000; background: #fff;
-    width: 72mm; padding: 8px;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    font-size: 13px; color: #000; background: #fff;
+    max-width: 72mm; margin: 0 auto; padding: 8px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; -webkit-font-smoothing: auto;
   }
   table { width: 100%; border-collapse: collapse; }
-  td, th { font-size: 11px; font-weight: normal; }
+  td, th { font-size: 13px; font-weight: normal; }
   .c { text-align: center; }
   .r { text-align: right; }
   .l { text-align: left; }
@@ -50,51 +50,51 @@ function buildThermalReceipt(data: any, cafeName: string): string {
 <body${isRTL ? ' dir="rtl"' : ''}>
 
 <div class="c" style="margin-bottom:6px;">
-  <div style="font-size:16px;font-weight:900;letter-spacing:2px;">${cafeName}</div>
-  <div style="font-size:11px;margin-top:2px;">━━━━━━━━━━━━━━━━━━━━</div>
-  <div style="font-size:11px;font-weight:bold;">INVOICE / فاتورة</div>
+  <div style="font-size:18px;font-weight:900;letter-spacing:2px;">${cafeName}</div>
+  <div style="font-size:13px;margin-top:2px;">━━━━━━━━━━━━━━━━━━━━</div>
+  <div style="font-size:13px;font-weight:bold;">INVOICE / فاتورة</div>
 </div>
 
 <hr/>
 
 <table>
-  <tr><td style="font-size:11px;"># INV-${invNum}</td><td style="font-size:11px;text-align:right;">${printDate}</td></tr>
-  ${data.staff ? `<tr><td style="font-size:11px;">Staff / موظف</td><td style="font-size:11px;text-align:right;font-weight:bold;">${data.staff}</td></tr>` : ''}
-  ${data.device ? `<tr><td style="font-size:11px;">Device / جهاز</td><td style="font-size:11px;text-align:right;font-weight:bold;">${data.device.number} — ${data.device.type}</td></tr>` : ''}
+  <tr><td style="font-size:13px;"># INV-${invNum}</td><td style="font-size:13px;text-align:right;">${printDate}</td></tr>
+  ${data.staff ? `<tr><td style="font-size:13px;">Staff / موظف</td><td style="font-size:13px;text-align:right;font-weight:bold;">${data.staff}</td></tr>` : ''}
+  ${data.device ? `<tr><td style="font-size:13px;">Device / جهاز</td><td style="font-size:13px;text-align:right;font-weight:bold;">${data.device.number} — ${data.device.type}</td></tr>` : ''}
   ${data.type === 'SESSION' ? `
-  <tr><td style="font-size:11px;">Time / الوقت</td><td style="font-size:11px;text-align:right;font-weight:bold;">${startTime} → ${endTime}</td></tr>
-  <tr><td style="font-size:11px;">Mode / النوع</td><td style="font-size:11px;text-align:right;font-weight:bold;">${data.isMulti ? 'Multi / متعدد' : 'Single / فردي'}</td></tr>` : ''}
+  <tr><td style="font-size:13px;">Time / الوقت</td><td style="font-size:13px;text-align:right;font-weight:bold;">${startTime} → ${endTime}</td></tr>
+  <tr><td style="font-size:13px;">Mode / النوع</td><td style="font-size:13px;text-align:right;font-weight:bold;">${data.isMulti ? 'Multi / متعدد' : 'Single / فردي'}</td></tr>` : ''}
 </table>
 
 <hr/>
 
 ${gamingCost > 0 ? `
-<div style="font-weight:bold;font-size:11px;margin:3px 0;">Gaming Time / وقت اللعب</div>
+<div style="font-weight:bold;font-size:13px;margin:3px 0;">Gaming Time / وقت اللعب</div>
 <table>
   ${data.segments?.map((seg: any) => `
-    <tr><td style="font-size:11px;padding:1px 4px;">${seg.deviceType} (${seg.mode === 'SINGLE' ? 'Single' : 'Multi'})</td>
-    <td style="font-size:11px;text-align:right;padding:1px 4px;">${Number(seg.cost).toFixed(2)}</td></tr>
+    <tr><td style="font-size:13px;padding:1px 4px;">${seg.deviceType} (${seg.mode === 'SINGLE' ? 'Single' : 'Multi'})</td>
+    <td style="font-size:13px;text-align:right;padding:1px 4px;">${Number(seg.cost).toFixed(2)}</td></tr>
   `).join('') || ''}
 </table>` : ''}
 
 ${ordersHtml ? `
-<div style="font-weight:bold;font-size:11px;margin:3px 0;">${data.type === 'SESSION' ? 'Cafeteria / الكافتيريا' : 'Items / الأصناف'}</div>
+<div style="font-weight:bold;font-size:13px;margin:3px 0;">${data.type === 'SESSION' ? 'Cafeteria / الكافتيريا' : 'Items / الأصناف'}</div>
 <table>${ordersHtml}</table>` : ''}
 
 <hr class="h"/>
 
 <div class="c" style="margin:4px 0;">
-  <div style="font-size:11px;font-weight:bold;">TOTAL / الإجمالي</div>
-  <div style="font-size:18px;font-weight:900;letter-spacing:2px;margin:2px 0;">
-    ${grandTotal.toFixed(2)} <span style="font-size:10px;">EGP</span>
+  <div style="font-size:13px;font-weight:bold;">TOTAL / الإجمالي</div>
+  <div style="font-size:20px;font-weight:900;letter-spacing:2px;margin:2px 0;">
+    ${grandTotal.toFixed(2)} <span style="font-size:12px;">EGP</span>
   </div>
 </div>
 
 <hr/>
 
-<div class="c" style="font-size:11px;margin-top:6px;">
+<div class="c" style="font-size:13px;margin-top:6px;">
   <div>${isRTL ? 'شكراً لزيارتكم' : 'Thank you for visiting'}</div>
-  <div style="margin-top:2px;opacity:0.5;font-size:10px;">PS Cafe Pro</div>
+  <div style="margin-top:2px;opacity:0.5;font-size:11px;">PS Cafe Pro</div>
 </div>
 
 </body>
