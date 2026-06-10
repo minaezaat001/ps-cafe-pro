@@ -35,6 +35,7 @@ function buildThermalReceipt(data: any, cafeName: string): string {
     font-family: 'Courier New', Courier, monospace;
     font-size: 11px; color: #000; background: #fff;
     width: 72mm; padding: 8px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   table { width: 100%; border-collapse: collapse; }
   td, th { font-size: 11px; font-weight: normal; }

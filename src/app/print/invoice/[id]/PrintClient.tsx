@@ -81,9 +81,9 @@ export default function PrintClient({ invoiceData, paperSize }: PrintClientProps
     <>
       <style>{`
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: ${isThermal ? '11px' : '15px'}; color: #000; }
+        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: ${isThermal ? '11px' : '15px'}; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         ${pageStyle}
-        @media print { .no-print { display: none !important; } body { padding: 0; } }
+        @media print { .no-print { display: none !important; } body { padding: 0; color: #000 !important; } }
         .separator { border: none; border-top: 1px dashed #000; margin: 6px 0; }
         .double-sep { border: none; border-top: 2px solid #000; margin: 6px 0; }
         .center { text-align: center; }
@@ -93,7 +93,7 @@ export default function PrintClient({ invoiceData, paperSize }: PrintClientProps
         .no-print { position: fixed; bottom: 16px; left: 16px; padding: 8px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
       `}</style>
 
-      <div id="print-root" dir="rtl" style={{ maxWidth: "72mm", margin: "0 auto" }}>
+      <div id="print-root" style={{ maxWidth: "72mm", margin: "0 auto" }}>
         {/* Header */}
         <div className="center" style={{ marginBottom: 8 }}>
           <div className="big">PS CAFE PRO</div>

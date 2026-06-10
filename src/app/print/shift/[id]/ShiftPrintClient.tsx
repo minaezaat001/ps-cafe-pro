@@ -62,9 +62,9 @@ export default function ShiftPrintClient({ shiftData, summary }: Props) {
     <>
       <style>{`
         * { box-sizing: border-box; }
-        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; }
+        body { margin: 0; padding: 8px; background: white; font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         @page { size: 80mm auto; margin: 3mm 4mm; }
-        @media print { .no-print { display: none !important; } body { padding: 0; } }
+        @media print { .no-print { display: none !important; } body { padding: 0; color: #000 !important; } }
         .separator { border: none; border-top: 1px dashed #000; margin: 6px 0; }
         .double-sep { border: none; border-top: 2px solid #000; margin: 6px 0; }
         .center { text-align: center; }
