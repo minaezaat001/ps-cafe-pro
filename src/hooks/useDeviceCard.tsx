@@ -348,9 +348,10 @@ export function useDeviceCard({
         const remainingMs = totalMs - diff;
         if (remainingMs > 0) {
           const rd = intervalToDuration({ start: 0, end: remainingMs });
-          const rm = String(rd.minutes || 0).padStart(2, '0');
-          const rs = String(rd.seconds || 0).padStart(2, '0');
-          setRemainingLabel(`-${rm}:${rs}`);
+          const rh = String(Math.max(0, rd.hours || 0)).padStart(2, '0');
+          const rm = String(Math.max(0, rd.minutes || 0)).padStart(2, '0');
+          const rs = String(Math.max(0, rd.seconds || 0)).padStart(2, '0');
+          setRemainingLabel(`-${rh}:${rm}:${rs}`);
         } else {
           setRemainingLabel(t('device.timeUp'));
         }
