@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { TrialStatus } from "@/components/TrialStatus";
 import { PendingOrdersWidget } from "@/components/PendingOrdersWidget";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
-import AnnouncementBanner from "@/components/AnnouncementBanner";
+// import AnnouncementBanner from "@/components/AnnouncementBanner";
 import KeyboardShortcutsHUD from "@/components/KeyboardShortcutsHUD";
 import GlobalSearch from "@/components/GlobalSearch";
 
@@ -65,7 +65,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
         
-        {!isFullWidth && <AnnouncementBanner />}
+        {/* {!isFullWidth && <AnnouncementBanner />} */}
         {!isFullWidth && <ImpersonationBanner />}
         <main className={cn("flex-1 relative overflow-y-auto scrollbar-hide", !isFullWidth ? "bg-transparent" : "bg-background")}>
           {!isFullWidth && (
