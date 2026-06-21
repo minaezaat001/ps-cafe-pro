@@ -66,7 +66,7 @@ export default function PricingPage() {
             <div className="mb-8">
               <h3 className="text-xl font-bold text-muted-foreground mb-2">{isRTL ? "شهري" : "Monthly"}</h3>
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-black">250</span>
+                <span className="text-4xl font-black">350</span>
                 <span className="text-muted-foreground font-medium mb-1">EGP / {isRTL ? "شهر" : "month"}</span>
               </div>
             </div>
@@ -85,7 +85,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <button
-              onClick={() => handleWhatsApp("Monthly 250 EGP")}
+              onClick={() => handleWhatsApp("Monthly 350 EGP")}
               className="w-full py-3.5 rounded-xl font-bold bg-card border border-border hover:bg-muted transition-colors text-sm"
             >
               {isRTL ? "اشترك الآن" : "Subscribe Now"}
@@ -106,10 +106,10 @@ export default function PricingPage() {
                 <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               </div>
               <div className="flex items-end gap-1">
-                <span className="text-4xl font-black">2500</span>
+                <span className="text-4xl font-black">3200</span>
                 <span className="text-muted-foreground font-medium mb-1">EGP / {isRTL ? "سنة" : "year"}</span>
               </div>
-              <p className="text-xs text-success font-semibold mt-2">{isRTL ? "وفر 500 جنيه سنوياً" : "Save 500 EGP yearly!"}</p>
+              <p className="text-xs text-success font-semibold mt-2">{isRTL ? "وفر 1000 جنيه سنوياً (3 شهور مجاناً) 🎁" : "Save 1000 EGP yearly (3 months free) 🎁"}</p>
             </div>
             <ul className="space-y-4 flex-1 mb-8">
               <li className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <button
-              onClick={() => handleWhatsApp("Yearly 2500 EGP")}
+              onClick={() => handleWhatsApp("Yearly 3200 EGP")}
               className="w-full py-3.5 rounded-xl font-bold bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/25 transition-all active:scale-95 text-sm"
             >
               {isRTL ? "اشترك الآن" : "Subscribe Now"}
